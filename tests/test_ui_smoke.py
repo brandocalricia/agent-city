@@ -23,6 +23,16 @@ class Static(unittest.TestCase):
         for f in ("js/visuals.js", "js/hud.js", "js/streaks.js"):
             self.assertLess(order.index(f), order.index("js/main.js"), f)
 
+    def test_label_declutter_is_wired_cheap_and_keeps_town_hall(self):
+        s = read("js", "declutter.js")
+        self.assertIn("C.initDeclutter", s)
+        self.assertIn("'townhall' ? -2", s)          # Town Hall's label always wins
+        self.assertRegex(s, r"t - last < 0\.2[0-9]*")  # throttled, not per frame
+        self.assertIn("C.initDeclutter && C.initDeclutter()", read("js", "main.js"))
+        self.assertIn(".lbl-hidden", read("css", "style.css"))
+        order = re.findall(r"'(js/\w+\.js)'", read("js", "manifest.js"))
+        self.assertLess(order.index("js/declutter.js"), order.index("js/main.js"))
+
     def test_prompt_linter_checks_four_parts_locally(self):
         s = read("js", "buildings", "promptworkshop.js")
         self.assertIn("City.lintPrompt", s)
@@ -39,6 +49,8 @@ class Static(unittest.TestCase):
         self.assertIn("refusing to overwrite", w)  # never clobbers work that reached main meanwhile
         self.assertIn("commit-tree", w)
         self.assertNotIn("--force", w)
+        t = read(".github", "workflows", "tests.yml")   # partial publish pushes skip the matrix; the [publish] commit still runs it
+        self.assertIn("github.ref != 'refs/heads/publish' || contains(github.event.head_commit.message, '[publish]')", t)
 
     def test_index_has_hud_elements_used_by_scripts(self):
         html = read("index.html")
@@ -61,7 +73,7 @@ class Static(unittest.TestCase):
         for old in ("council", "cityhall"):
             self.assertRegex(al, rf"'?{old}'?:\s*'townhall'")
         roles = read("js", "roles.js")
-        self.assertIn("id: 'council', name: 'Council', icon: '\u2696\ufe0f', color: 0xe040fb, building: 'townhall'", roles)
+        self.assertIn("id: 'council', name: 'Council', icon: '⚖️', color: 0xe040fb, building: 'townhall'", roles)
 
     def test_no_building_shares_a_block_or_overlaps_the_hub(self):
         blocks = {}
@@ -145,7 +157,7 @@ class Browser(unittest.TestCase):
     def test_study_hall_answer_box_and_public_morning_brief(self):
         pg = self.page()
         e = "{answer: 'y = -pi^2 x + pi^3', accept: ['y = -pi^2 (x - pi)']}"
-        for given, want in (("y = pi^3 - pi^2*x", "right"), ("-\u03c0^2(x-pi)", "right"), ("-pi^2x+pi^3", "right"),
+        for given, want in (("y = pi^3 - pi^2*x", "right"), ("-π^2(x-pi)", "right"), ("-pi^2x+pi^3", "right"),
                             ("y = pi^2 x", "wrong"), ("", "empty"), ("alert(1)", "wrong")):
             self.assertEqual(pg.evaluate(f"City.checkAnswer({given!r}, {e})"), want, given)
         self.assertEqual(pg.evaluate("City.checkAnswer('42', {})"), "nokey")
@@ -158,6 +170,21 @@ class Browser(unittest.TestCase):
         pg.evaluate("City.openPanel('building', 'kiosk')")
         txt = pg.inner_text("#panelBody")
         self.assertIn("local copy only", txt); self.assertIsNone(pg.evaluate("City.briefCount()"))
+        self.assertEqual(self.errors, [])
+        pg.close()
+
+    def test_labels_never_overlap_and_town_hall_stays(self):
+        pg = self.page()
+        pg.wait_for_timeout(800)
+        pg.evaluate("City.declutter()")
+        res = pg.evaluate("""(() => { const v = [...document.querySelectorAll('.labels .lm-label, .labels .mini-sign')]
+          .filter(e => e.style.display !== 'none' && !e.classList.contains('lbl-hidden')).map(e => e.getBoundingClientRect());
+          let bad = 0; for (let i = 0; i < v.length; i++) for (let j = i + 1; j < v.length; j++) {
+            const a = v[i], b = v[j]; if (a.left < b.right && b.left < a.right && a.top < b.bottom && b.top < a.bottom) bad++; }
+          return [v.length, bad, City.LANDMARKS.townhall.label.element.classList.contains('lbl-hidden')]; })()""")
+        self.assertGreater(res[0], 5)
+        self.assertEqual(res[1], 0)
+        self.assertFalse(res[2])
         self.assertEqual(self.errors, [])
         pg.close()
 

@@ -21,7 +21,7 @@ for (const id of C.buildingOrder) {
 C.scene.updateMatrixWorld(true);
 C.scene.traverse(o => { if (o.userData.solid) { const b = new THREE.Box3().setFromObject(o); C.solids.push({ x0: b.min.x, x1: b.max.x, z0: b.min.z, z1: b.max.z }); } });
 if (C.LANDMARKS.townhall && C.HUB_LOCAL) C.HUB = C.LANDMARKS.townhall.group.localToWorld(C.HUB_LOCAL.clone());
-C.initAgents(); C.initUI(); C.initMinimap(); C.initVisuals && C.initVisuals(); C.initHUD && C.initHUD(); C.initStreaks && C.initStreaks(); C.applyTime();
+C.initAgents(); C.initUI(); C.initMinimap(); C.initVisuals && C.initVisuals(); C.initHUD && C.initHUD(); C.initStreaks && C.initStreaks(); C.initDeclutter && C.initDeclutter(); C.applyTime();
 const clock = new THREE.Clock(); let frames = 0;
 (function loop() {
   requestAnimationFrame(loop);

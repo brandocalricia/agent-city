@@ -54,7 +54,8 @@ body.ready #loading { opacity: 0; pointer-events: none; }
 .lm-label:hover { transform: scale(1.08); background: rgba(30,36,64,.92); }
 .lm-label b { font-size: 14px; letter-spacing: .2px; }
 .lm-label span { display: block; font-size: var(--fs-xs); color: var(--mute); }
-.lm-label.small { padding: 3px 9px; } .lm-label.small b { font-size: 12px; }
+.lm-label.small { padding: 3px 9px; }
+.lbl-hidden { opacity: 0; pointer-events: none !important; transition: opacity .25s; } .lm-label, .mini-sign { transition: opacity .25s, transform .15s, background .15s; } .lm-label.small b { font-size: 12px; }
 .agent-tag { pointer-events: auto; cursor: pointer; padding: 3px 9px; border-radius: 8px; background: rgba(10,12,22,.78); border: 1px solid rgba(94,231,255,.45); font-size: 12px; white-space: nowrap; text-align: center; }
 .agent-tag.scout { border-color: rgba(255,170,80,.55); }
 .agent-tag span { display: block; font-size: 10px; color: var(--mute); }

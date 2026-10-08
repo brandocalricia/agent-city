@@ -74,7 +74,7 @@ main() {
   elif ! gh auth token >/dev/null 2>&1; then
     echo "agent-city: message link: gh is not signed in. Run: gh auth login"
   fi
-  [ -f "$D/bot-webhook.env" ] || echo "agent-city: message link: webhook not set up yet (optional): paste URL+key from the Bot panel into: python3 $D/comms.py setup"
+  [ -f "$D/bot-webhook.env" ] || echo "agent-city: message link: link not set up yet: run: python3 $D/comms.py setup   # thread-only by default; webhook optional"
   echo "agent-city: restart Grok, then run 'grok inspect' and look for 40-agent-city.md, city-council, city-apply, bot-link, and the agent-city hook."
   return 0
 }

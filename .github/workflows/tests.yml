@@ -7,6 +7,8 @@ permissions:
   contents: read
 jobs:
   test:
+    # Partial pushes to the publish branch are skipped (no failure-email floods); its final [publish] commit is tested on both OSes.
+    if: github.ref != 'refs/heads/publish' || contains(github.event.head_commit.message, '[publish]')
     strategy:
       fail-fast: false
       matrix:

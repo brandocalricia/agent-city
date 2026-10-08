@@ -112,5 +112,39 @@ class Pace(unittest.TestCase):
         self.assertEqual(pace.compute(b, T("2026-10-09T08:49")), pace.compute(b, T("2026-10-09T08:49")))
 
 
+    def test_per_source_breakdown_counts_all_bots_and_reading_drift(self):
+        # Prev reading 7; logged 1.5 Agent City ad-hoc before next reading 10 -> other drift = 1.5
+        # After latest reading: one session, one math-tutor adhoc, one default Agent City adhoc
+        b = budget(
+            readings=[{"at": "2026-10-07T23:27", "used_pct": 7}, {"at": "2026-10-08T06:00", "used_pct": 10}],
+            sessions=[{"at": "2026-10-08T07:00", "tier": "S", "estimate_pct": 0.75}],
+            adhoc=[
+                {"at": "2026-10-08T01:00", "tier": "M", "est_pct": 1.5, "source": "agent-city"},
+                {"at": "2026-10-08T07:30", "tier": "L", "est_pct": 2.0, "source": "math-tutor"},
+                {"at": "2026-10-08T08:00", "tier": "M", "est_pct": 1.0},
+            ],
+        )
+        r = pace.compute(b, T("2026-10-08T08:49"))
+        self.assertEqual(r["est_used_pct"], 13.75)
+        bs = r["by_source"]
+        self.assertEqual(bs["sessions_pct"], 0.75)
+        self.assertEqual(bs["math_tutor_pct"], 2.0)
+        self.assertEqual(bs["agent_city_adhoc_pct"], 1.0)
+        self.assertEqual(bs["other_pct"], 1.5)
+        with TempDir() as d:
+            path = os.path.join(d, "budget.json")
+            with open(path, "w") as f:
+                json.dump(b, f)
+            out = io.StringIO()
+            with redirect_stdout(out):
+                self.assertEqual(pace.main(["--budget", path, "--now", "2026-10-08T08:49"]), 0)
+            text = out.getvalue()
+            self.assertIn("by source:", text)
+            self.assertIn("sessions 0.75%", text)
+            self.assertIn("Agent City ad-hoc 1.0%", text)
+            self.assertIn("math-tutor 2.0%", text)
+            self.assertIn("other (reading drift) 1.5%", text)
+
+
 if __name__ == "__main__":
     unittest.main()

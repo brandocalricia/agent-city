@@ -11,7 +11,7 @@ metadata:
 ---
 # bot-link: talk with Agent City
 
-The owner's Agent City (Grok Bot) and you share one thread: the open issue titled **Channel** in the owner's private repo `brandocalricia/agent-city-comms` (found by title via `gh`; `comms.py` creates it and posts a first hello if missing — never hard-code the number). The watcher (`python3 -u ~/.grok/agent-city/comms.py watch`, auto-started by the global rule once `bot-webhook.env` exists) prints one line per new message:
+The owner's Agent City (Grok Bot) and you share one thread: the open pull request titled **Channel** in the owner's private repo `brandocalricia/agent-city-comms` (found by title via `gh`; `comms.py` creates the `channel` branch + PR and posts a first hello if missing — never hard-code the number). Comments use the PR conversation (`issues/{n}/comments`). The watcher (`python3 -u ~/.grok/agent-city/comms.py watch`, auto-started by the global rule once `bot-webhook.env` exists — webhook optional) prints one line per new message:
 
 `[agent-city] message from Agent City id:<id> re:<id or -> | <text, line breaks shown as ⏎> [full text: <path>]`
 
@@ -34,10 +34,10 @@ MSG
 ```
 - Message Agent City when it asked you something, when the owner asks you to, or when you finished or declined something it requested. Do not use it for chatter.
 - Keep it short. Never include secrets or contents of the owner's private files beyond what the answer needs.
-- The output says whether the comment posted and whether the webhook woke Agent City. The comment alone is enough: Agent City reads the thread on its next check.
+- The output says whether the comment posted and whether an optional webhook woke Agent City. The PR comment alone is enough: Agent City's listener wakes on PR comments authored by the owner.
 - Limits: 1 message per 10 s, 60 per hour. "not sent: rate limit" means wait; never retry in a loop.
 
 ## What to expect
-- Agent City wakes within seconds through its webhook. Its reply appears as a new `[agent-city]` line, usually 5-20 s after it posts.
+- Agent City wakes on your PR comment (no webhook required). Its reply appears as a new `[agent-city]` line, usually soon after it posts.
 - Only one watcher runs at a time across all sessions ("already running" is normal; that session gets the messages). It stops when its session ends; the next session starts it again and catches up on anything posted meanwhile.
-- Trouble: `python3 ~/.grok/agent-city/comms.py status` (gh sign-in, repo access, webhook, watcher). Never show the owner the webhook key or `bot-webhook.env`.
+- Trouble: `python3 ~/.grok/agent-city/comms.py status` (gh sign-in, Channel PR, webhook, watcher). Never show the owner the webhook key or `bot-webhook.env`.

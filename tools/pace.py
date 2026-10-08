@@ -10,9 +10,11 @@ and the recommended size for THIS session. Task descriptions ("what"/"task") are
   python3 tools/pace.py --now 2026-10-08T08:49 --budget path/to/budget.json
 
 Estimated used % = latest real reading (from the owner's Usage page) + every logged session and
-ad-hoc entry after that reading (est_pct, or calibration.pct_per_tier[tier]).
-Every session must also log its own entry in budget.json "sessions" when it finishes, and ad-hoc
-work the owner asks Grok Bot for goes in "adhoc", so the next session recalculates.
+ad-hoc entry after that reading (est_pct, or calibration.pct_per_tier[tier]), from EVERY Grok Bot
+(Agent City sessions/ad-hoc, Math Tutor, and any other source). Prints a per-source breakdown.
+"other" is unexplained drift between real readings (new reading minus previous reading + logged
+estimate). Every session logs itself in budget.json "sessions"; ad-hoc work goes in "adhoc" with a
+source (e.g. "math-tutor"); the next session recalculates.
 """
 import argparse
 import datetime as dt
@@ -57,6 +59,56 @@ def slots_between(start, end, slots):
     return n
 
 
+
+def adhoc_source(e):
+    """Normalize adhoc source: math-tutor, agent-city (default), or other-bot label."""
+    s = str(e.get("source") or "").strip().lower().replace("_", "-")
+    if s in ("math-tutor", "mathtutor"):
+        return "math-tutor"
+    if s in ("", "agent-city", "agentcity", "grok-bot", "agent city"):
+        return "agent-city"
+    return s or "agent-city"
+
+
+def reading_drift(budget, reading, tier_pct):
+    """Unexplained pts between the previous real reading and this one (actual - estimated). 0 if none."""
+    if not reading:
+        return 0.0
+    readings = sorted((r for r in budget.get("readings", []) if isinstance(r, dict) and "at" in r),
+                      key=lambda r: parse_t(r["at"]))
+    try:
+        i = next(i for i, r in enumerate(readings) if r is reading or (r.get("at") == reading.get("at") and r.get("used_pct") == reading.get("used_pct")))
+    except StopIteration:
+        return 0.0
+    if i == 0:
+        return 0.0
+    prev = readings[i - 1]
+    t0, t1 = parse_t(prev["at"]), parse_t(reading["at"])
+    logged = []
+    for key in ("sessions", "adhoc"):
+        for e in budget.get(key, []):
+            if isinstance(e, dict) and "at" in e and t0 < parse_t(e["at"]) <= t1:
+                logged.append(e)
+    estimated = float(prev["used_pct"]) + sum(entry_pct(e, tier_pct) for e in logged)
+    return round(float(reading["used_pct"]) - estimated, 2)
+
+
+def source_breakdown(sessions_after, adhoc_after, tier_pct, other_pct):
+    sess = round(sum(entry_pct(e, tier_pct) for e in sessions_after), 2)
+    ac = mt = 0.0
+    for e in adhoc_after:
+        pct = entry_pct(e, tier_pct)
+        if adhoc_source(e) == "math-tutor":
+            mt += pct
+        else:
+            ac += pct  # Agent City ad-hoc + any other bot sources fold here for the four-bucket print
+    return {
+        "sessions_pct": sess,
+        "agent_city_adhoc_pct": round(ac, 2),
+        "math_tutor_pct": round(mt, 2),
+        "other_pct": round(float(other_pct), 2),
+    }
+
 def compute(budget, now):
     period = dt.timedelta(days=int(budget.get("reset_period_days", 7)))
     reset = parse_t(budget["reset_local"])
@@ -76,10 +128,16 @@ def compute(budget, now):
         base, since = float(reading["used_pct"]), parse_t(reading["at"])
     else:                        # no reading in this window (e.g. after a reset): start from 0 at the window start
         base, since = 0.0, start
-    logged = [e for key in ("sessions", "adhoc") for e in budget.get(key, []) if isinstance(e, dict) and "at" in e]
-    after = [e for e in logged if since < parse_t(e["at"]) <= now]
+    sessions_all = [e for e in budget.get("sessions", []) if isinstance(e, dict) and "at" in e]
+    adhoc_all = [e for e in budget.get("adhoc", []) if isinstance(e, dict) and "at" in e]
+    # Count EVERY adhoc entry regardless of source (Agent City, math-tutor, …).
+    sessions_after = [e for e in sessions_all if since < parse_t(e["at"]) <= now]
+    adhoc_after = [e for e in adhoc_all if since < parse_t(e["at"]) <= now]
+    after = sessions_after + adhoc_after
     added = round(sum(entry_pct(e, tier_pct) for e in after), 2)
-    used = round(base + added, 2)
+    other = reading_drift(budget, reading if has_reading else None, tier_pct) if has_reading else 0.0
+    used = round(base + added, 2)  # reading is ground truth; drift is informational in by_source.other
+    by_source = source_breakdown(sessions_after, adhoc_after, tier_pct, other)
     hours_left = round((reset - now).total_seconds() / 3600, 1)
     reserve = float(budget.get("reserve_pct", 0))
     release_h = float(budget.get("reserve_release_hours_before_reset", 12))
@@ -115,7 +173,7 @@ def compute(budget, now):
         "reserve_held_pct": reserve_held, "spendable_pct": spendable,
         "hours_left": hours_left, "sessions_left": sessions_left, "per_session_pct": per_session,
         "pace_line_pct": pace_line, "over_pace_pts": over_pace, "recommend": rec,
-        "tier_pct": tier_pct,
+        "tier_pct": tier_pct, "by_source": by_source,
     }
 
 
@@ -159,6 +217,9 @@ def main(argv=None):
     print(f"  estimated used: {r['est_used_pct']}% = reading {r['reading_pct']}%"
           + (f" at {r['reading_at']}" if r["reading_at"] else " (no reading this week)")
           + f" + {r['logged_pct_since_reading']}% from {r['logged_since_reading']} logged sessions/ad-hoc tasks since")
+    bs = r["by_source"]
+    print(f"  by source: sessions {bs['sessions_pct']}%; Agent City ad-hoc {bs['agent_city_adhoc_pct']}%; "
+          f"math-tutor {bs['math_tutor_pct']}%; other (reading drift) {bs['other_pct']}%")
     print(f"  remaining to the {r['target_pct']:g}% target: {r['remaining_pct']}%"
           + (f" ({r['reserve_held_pct']:g}% reserve held until the last 12 h)" if r["reserve_held_pct"] else " (reserve released)"))
     print(f"  {r['hours_left']} h and {r['sessions_left']} scheduled sessions left -> {r['per_session_pct']}% per session")
