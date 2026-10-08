@@ -1,6 +1,6 @@
 # Agent City suggestions for Grok Build
 
-Generated 2026-10-08 18:33 UTC by build_data.py; refreshed every city session. Read by the `city-apply` skill.
+Generated 2026-10-08 19:04 UTC by build_data.py; refreshed every city session. Read by the `city-apply` skill.
 Only the Apply queue is actionable. Each id is processed once; local state is `~/.grok/agent-city/applied.json`.
 Every item carries checks (run before and after; `$ ` lines are commands) and tests (must pass). Items without them are skipped.
 
@@ -30,11 +30,11 @@ Every item carries checks (run before and after; `$ ` lines are commands) and te
 
 ## Latest Council verdicts (context; already handled in the city)
 
+- 2026-10-08 Quick YES 7/10: Catch up the missed 8:49 AM roles at midday (Courier, Timekeeper, Tutor), skipping Scout deep research and the Newsroom since today's digest exists? Reason: Keeps the Morning Brief and Study Hall fresh after a failed session while staying inside this session's M budget
+- 2026-10-08 Quick YES 9/10: Skip the test workflow on partial publish-branch pushes, but still run it on the final [publish] commit? Reason: Partial pushes are incomplete by design, so their failures were pure noise (about 15 emails); the [publish] commit still gets the full ubuntu + macOS run and publish.yml still gates main
+- 2026-10-08 Quick YES 8/10: Fade overlapping building labels, keeping Town Hall's label always visible? Reason: Overlapping names were unreadable in the overview; one small throttled file fixes it and is easy to undo; search and the minimap still reach every building
 - 2026-10-08 Quick YES 8/10: Should the Prompt Workshop get a linter that checks a pasted prompt for goal, context, done-when, and output, and offers the missing lines to copy? Reason: The four parts match the Delegate template agents already respond best to; checking runs in the browser, so it is instant and free. Red Team: keyword checks can miss a well-written prompt; accepted, it only suggests and never blocks.
 - 2026-10-08 Quick YES 9/10: Should large publishes be pushed to a `publish` branch in pieces and then moved to main in one commit by a GitHub Action (tests first, refusing to overwrite newer work), instead of a chain of direct pushes to main? Reason: Pushes to a branch never touch the live site, so a publish that stops partway leaves nothing half-live, which is what stranded the last two publishes. Opening pull requests from a scheduled run needs the owner to confirm a form, so an Action does the one-step move. Red Team: an Action that writes to main could overwrite newer work; rebutted, it refuses whenever main changed in files the branch differs on, and it never force-pushes.
-- 2026-10-08 Quick YES 9/10: Should every new Tutor problem include a short `answer` (a final expression in x when possible) and an optional `accept` list, so the Study Hall can check typed answers in the browser before the solution unlocks? Reason: Pragmatist: trying before peeking is how the problems actually help with Calc I quizzes. Resource Realist: one short field per problem, no extra calls. Risk Officer: the checker is a tiny parser with no eval, so typed text cannot run code. Red Team: the answer key is visible in data.js; rebutted, the full solution already is, and the lock is a study nudge, not security.
-- 2026-10-08 Quick YES 8/10: Should the Morning Brief kiosk replace the front-right plaza planter, combining the Courier's and Timekeeper's notes on the local copy only, with a clean empty state on the public site? Reason: Pragmatist: one place to read the day instead of two panels. Risk Officer: it reads only private.js, which the public site never loads, and a static test guards that. User Voice: the counts on the sign tell him at a glance whether to open it. Red Team: public visitors see a box that says 'local copy only'; accepted, that is the empty state the rules require, and it links to both roles.
-- 2026-10-08 Quick YES 8/10: Should this session push the rest of the UI overhaul (stuck on the ui-overhaul branch, CI green) to main in the same single commit as tonight's work? Reason: Pragmatist: the public city lags its own changelog, which looks broken. Risk Officer: the files match a branch that passed CI on ubuntu and macOS and render with no errors here; one revert undoes it. Resource Realist: one bigger push now beats re-explaining the mismatch every session. Red Team: the branch might have been held on purpose; rebutted, the design already had a Council YES and nothing marks it as held.
 
 ## Next best steps for the city (context)
 

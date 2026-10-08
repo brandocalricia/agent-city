@@ -37,23 +37,22 @@ Guardrails: never force-push, delete your data, add paid services, change `confi
 
 ## Message link (Grok Bot <-> Grok Build)
 
-A near-instant two-way thread between the owner's Agent City (Grok Bot) and a running Grok Build session. The channel and log is the open issue titled
-**Channel** in the owner's private repo `agent-city-comms` (found by title; never hard-coded by number); each message is one comment headed
-`[from:grok-bot|grok-build] [id:<id>] [re:<id or ->]`.
+A two-way thread between the owner's Agent City (Grok Bot) and a running Grok Build session. The channel and log is the open **pull request** titled
+**Channel** in the owner's private repo `agent-city-comms` (found by title; never hard-coded by number). Each message is one PR conversation comment headed
+`[from:grok-bot|grok-build] [id:<id>] [re:<id or ->]`. Grok Bot comments MUST start with `[from:grok-bot]` so Agent City's PR-comment wake can exit at once.
 
-- **Agent City -> Grok Build:** once `bot-webhook.env` exists, the global rule starts `python3 -u ~/.grok/agent-city/comms.py watch` as a persistent
-  monitor early in each interactive session. It resolves Channel by title (creates + first hello if missing), polls every 10 s with `If-None-Match`
-  (unchanged polls are 304s that do not use rate limit), prints one `[agent-city] message ...` line per new grok-bot message, stores its cursor in
-  `~/.grok/agent-city/comms-state.json`, runs once across sessions (lock), backs off to 5 min when offline, and exits when its session ends. The
-  `bot-link` skill handles each line: questions answered, code changes through city-council.
-- **Grok Build -> Agent City:** `comms.py send [--re <id>] "text"` resolves Channel, posts the comment with `gh`, and POSTs
-  `{id, re, text, from, comment_url}` to Agent City's inbox webhook so it wakes at once. Without a webhook the comment alone still works (Agent City
-  reads it on its next check). Max 1 send per 10 s and 60 per hour.
-- **Setup (once):** `gh auth login`; paste the webhook URL and key from Agent City's "Grok Build inbox" routine panel into
-  `python3 ~/.grok/agent-city/comms.py setup` (plain text in the prompt, or `--clipboard`, or `--url`/`--key`). It writes
-  `~/.grok/agent-city/bot-webhook.env` (chmod 600), never echoes the key, and creates the Channel issue if missing. Default header
-  `Authorization: Bearer {key}`; edit `AGENT_CITY_WEBHOOK_HEADER` there for another format. `comms.py status` checks everything.
-- Needs `python3` and the GitHub CLI `gh`, signed in as the owner. Uninstall keeps the webhook config and cursor.
+- **Agent City -> Grok Build:** once `bot-webhook.env` exists (thread-only or with webhook) and `gh` is signed in, the global rule starts
+  `python3 -u ~/.grok/agent-city/comms.py watch` as a persistent monitor early in each interactive session. It resolves the Channel PR by title (creates
+  branch `channel` + PR + first hello if missing), polls every 10 s with `If-None-Match` (unchanged polls are 304s that do not use rate limit), prints one
+  `[agent-city] message ...` line per new grok-bot message, stores its cursor in `~/.grok/agent-city/comms-state.json`, runs once across sessions (lock),
+  backs off to 5 min when offline, and exits when its session ends. The `bot-link` skill handles each line: questions answered, code changes through city-council.
+- **Grok Build -> Agent City:** `comms.py send [--re <id>] "text"` resolves Channel, posts the PR comment with `gh`, and only POSTs to the optional inbox
+  webhook when configured. The PR comment alone wakes Agent City (PR-comment listener). Max 1 send per 10 s and 60 per hour.
+- **Setup (once):** `gh auth login`, then `python3 ~/.grok/agent-city/comms.py setup` with no URL/key for **thread-only** mode (default). It checks gh auth,
+  finds or creates the Channel PR, writes `~/.grok/agent-city/bot-webhook.env` with `AGENT_CITY_WEBHOOK=off`, and prints the next step (`watch`). Optional
+  webhook later: paste URL+key via `--clipboard` / `--url`/`--key` / plain text. Secrets are never echoed. `comms.py status` checks everything.
+- Needs `python3` and the GitHub CLI `gh`, signed in as the owner. Uninstall keeps the link config and cursor.
+
 
 ## Files here
 

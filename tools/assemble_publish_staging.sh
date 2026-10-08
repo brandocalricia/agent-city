@@ -82,7 +82,6 @@ if [ -f .publish-staging/data.patch ]; then
   patch -p1 < .publish-staging/data.patch
   echo "patched data.js"
 fi
-# Whole-file b64 octets win over patches: NAME.full.b64.a1..a4+b1..b4 (NAME uses __ for /)
 python3 - <<'PY2'
 import base64
 from pathlib import Path
@@ -103,9 +102,6 @@ for a1 in stg.glob("*.full.b64.a1"):
     print("wrote %s (%d bytes from full.b64 a1-4+b1-4)" % (rel, len(data)))
 PY2
 
-
-
-# Whole-file numbered b64 parts: NAME.full.b64.p1..pN
 python3 - <<'PY3'
 import base64, re
 from pathlib import Path
@@ -118,12 +114,38 @@ for p in stg.glob("*.full.b64.p*"):
     groups.setdefault(m.group(1), []).append((int(m.group(2)), p))
 for key, items in groups.items():
     items.sort()
+    idxs = [i for i, _ in items]
+    if idxs != list(range(1, len(idxs) + 1)):
+        print("skip incomplete full.b64 p-set %s (have %s)" % (key, idxs))
+        continue
     data = base64.b64decode("".join(p.read_text().strip() for _, p in items))
     rel = key.replace("__", "/")
     Path(rel).parent.mkdir(parents=True, exist_ok=True)
     Path(rel).write_bytes(data)
     print("wrote %s (%d bytes from full.b64 p1..%d)" % (rel, len(data), len(items)))
 PY3
+
+python3 - <<'PY4'
+import re
+from pathlib import Path
+stg = Path(".publish-staging")
+groups = {}
+for p in stg.glob("*.parts.*"):
+    m = re.match(r"(.+)\.parts\.(\d+)$", p.name)
+    if not m:
+        continue
+    groups.setdefault(m.group(1), []).append((int(m.group(2)), p))
+for key, items in groups.items():
+    items.sort()
+    idxs = [i for i, _ in items]
+    if idxs != list(range(1, len(idxs) + 1)):
+        raise SystemExit("incomplete parts set %s: %s" % (key, idxs))
+    text = "".join(p.read_text() for _, p in items)
+    rel = key.replace("__", "/")
+    Path(rel).parent.mkdir(parents=True, exist_ok=True)
+    Path(rel).write_text(text)
+    print("wrote %s (%d chars from parts 1..%d)" % (rel, len(text), len(items)))
+PY4
 
 rm -rf .publish-staging
 echo "Staging removed."

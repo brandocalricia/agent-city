@@ -1,5 +1,5 @@
 """grok-build/comms/comms.py, the Agent City <-> Grok Build message link: header parsing, dedupe, cursor, ETag
-(304) polling, single-instance lock, backoff, rate limits, send with and without the webhook, setup parsing, and
+(304) polling, single-instance lock, backoff, rate limits, send with and without the webhook, thread-only setup (Channel PR), setup parsing, and
 that secrets (gh token, webhook URL path, sender key) are never printed. Uses a fake `gh` and local HTTP servers."""
 import fcntl, http.server, json, os, stat, sys, threading, time, unittest
 from helpers import GB, TempDir, run
@@ -15,30 +15,48 @@ echo "$*" >> "$FAKE_GH_DIR/args"
 case "$1" in
   auth) [ -n "$FAKE_GH_NOAUTH" ] && { echo "You are not logged into any GitHub hosts" >&2; exit 1; }
         echo "ghtok_SECRET_123" ;;
+  pr) case "$2" in
+        create) echo "https://github.com/brandocalricia/agent-city-comms/pull/7" ;;
+        *) echo "gh pr: unknown" >&2; exit 1 ;;
+      esac ;;
   api) if [ "$2" = "--method" ]; then
          method="$3"; path="$4"
          cat > "$FAKE_GH_DIR/body.json"
          [ -n "$FAKE_GH_FAIL" ] && { echo "gh: Server Error (HTTP 502)" >&2; exit 1; }
          case "$path" in
            */issues/*/comments)
-             echo '{"id": 99, "html_url": "https://github.com/o/r/issues/1#issuecomment-99"}' ;;
+             echo '{"id": 99, "html_url": "https://github.com/o/r/pull/1#issuecomment-99"}' ;;
+           */git/refs)
+             echo '{"ref":"refs/heads/channel","object":{"sha":"abc"}}' ;;
+           */contents/*)
+             echo '{"content":{"sha":"filesha","path":"channel/README.md"}}' ;;
            */issues)
-             # create Channel issue
              echo '{"number": 7, "title": "Channel", "html_url": "https://github.com/o/r/issues/7"}' ;;
            *) echo '{"ok": true}' ;;
          esac
        else
          path="$2"
          case "$path" in
-           *'/issues?state=open'*|*'issues?state=open'*)
+           *'/pulls?state=open'*|*'pulls?state=open'*)
              if [ -n "$FAKE_GH_NO_CHANNEL" ]; then
                echo '[]'
              else
-               echo '[{"number":1,"title":"Channel","state":"open"}]'
+               echo '[{"number":1,"title":"Channel","state":"open","head":{"ref":"channel"}}]'
              fi ;;
+           *'/issues?state=open'*|*'issues?state=open'*)
+             echo '[]' ;;
+           */git/ref/heads/*)
+             echo '{"object":{"sha":"mainsha123"}}' ;;
+           */contents/*)
+             # file missing on first create
+             echo '{"message":"Not Found"}' >&2; exit 1 ;;
+           */repos/brandocalricia/agent-city-comms|brandocalricia/agent-city-comms|*/agent-city-comms)
+             echo '{"default_branch":"main"}' ;;
            */issues/[0-9]*)
              echo 1 ;;
-           *) echo 1 ;;
+           *)
+             # repos/{owner}/{repo} without extra path
+             echo '{"default_branch":"main"}' ;;
          esac
        fi ;;
 esac
@@ -268,7 +286,7 @@ class Send(Base):
     def test_without_webhook_comment_still_works(self):
         r = self.comms("send", "--re", "b1", "pong")
         self.assertEqual(r.returncode, 0, r.stdout)
-        self.assertIn("comment: posted", r.stdout); self.assertIn("webhook: not configured", r.stdout)
+        self.assertIn("comment: posted", r.stdout); self.assertIn("webhook: off (thread-only", r.stdout)
         m = comms.parse_message(self.body())
         self.assertEqual((m["from"], m["re"], m["text"]), ("grok-build", "b1", "pong"))
         self.assertRegex(m["id"], r"^g[0-9a-f]{6}$")
@@ -372,15 +390,14 @@ class Setup(Base):
         self.assertEqual(stat.S_IMODE(os.stat(p).st_mode), 0o600)
         self.assertIn(KEY, read(p))
 
-    def test_channel_resolves_by_title_and_creates(self):
-        # no env override: list empty -> create returns #7 + hello comment
+    def test_channel_resolves_by_title_and_creates_pr(self):
+        # no env override: open PRs empty -> create branch + pr create returns #7 + hello comment
         e = dict(self.e, FAKE_GH_NO_CHANNEL="1")
         e.pop("AGENT_CITY_COMMS_ISSUE", None)
+        e.pop("AGENT_CITY_COMMS_PR", None)
         os.environ.pop("AGENT_CITY_COMMS_ISSUE", None)
+        os.environ.pop("AGENT_CITY_COMMS_PR", None)
         try:
-            n = None
-            # patch through subprocess: call channel_number via watch start failure path is heavy;
-            # call the module helpers with PATH pointing at fake gh
             old = dict(os.environ)
             os.environ.clear(); os.environ.update(e)
             try:
@@ -389,11 +406,33 @@ class Setup(Base):
                 os.environ.clear(); os.environ.update(old)
             self.assertEqual(n, 7)
             args = read(os.path.join(self.d, "args"))
-            self.assertIn("repos/brandocalricia/agent-city-comms/issues", args)
-            self.assertIn("--method POST", args)  # may appear as separate: check body was written
+            self.assertIn("pr create", args)
+            self.assertIn("repos/brandocalricia/agent-city-comms/git/refs", args)
+            self.assertIn("channel/README.md", args)
             self.assertTrue(os.path.exists(os.path.join(self.d, "body.json")))
         finally:
             os.environ["AGENT_CITY_COMMS_ISSUE"] = "1"
+
+    def test_setup_thread_only_no_url_key(self):
+        r = self.comms("setup", input="")
+        self.assertEqual(r.returncode, 0, r.stdout)
+        self.assertIn("thread-only", r.stdout)
+        self.assertIn("Channel PR", r.stdout)
+        self.assertIn("webhook off", r.stdout.lower())
+        p = os.path.join(self.D, "bot-webhook.env")
+        self.assertTrue(os.path.exists(p))
+        self.assertEqual(stat.S_IMODE(os.stat(p).st_mode), 0o600)
+        body = read(p)
+        self.assertIn("AGENT_CITY_WEBHOOK=off", body)
+        self.assertNotIn("AGENT_CITY_WEBHOOK_URL=", body)
+        # status reflects thread-only
+        s = self.comms("status")
+        self.assertIn("webhook: off (thread-only)", s.stdout)
+        # send still works; webhook reported off
+        r2 = self.comms("send", "ping")
+        self.assertEqual(r2.returncode, 0, r2.stdout)
+        self.assertIn("comment: posted", r2.stdout)
+        self.assertIn("webhook: off (thread-only", r2.stdout)
 
 
 class Hygiene(unittest.TestCase):

@@ -484,5 +484,86 @@
     "role": "optimizer",
     "action": "Sessions no longer push data.js: the publish Action regenerates it",
     "details": "data.js (about 57 KB, roughly 14k tokens) was the biggest file in every publish. build_data.py now keeps the committed skills, agents and routines when it runs off the box, and the publish Action regenerates data.js and the Grok Build feed before testing, so sessions push only the small source files (activity.json, docs, code). It is pushed only when skills, agents or routines change. 2 new tests."
+  },
+  {
+    "date": "2026-10-08",
+    "session": "Midday session (12:04 PM)",
+    "role": "inspector",
+    "action": "The 8:49 AM session failed, so its morning roles were caught up here; the live site was healthy (version o, CI and Pages green, 138 tests pass, no page errors)"
+  },
+  {
+    "date": "2026-10-08",
+    "session": "Midday session (12:04 PM)",
+    "role": "inspector",
+    "action": "Found the test workflow running and failing on every partial push to the publish branch (about 15 failure emails this morning); it now skips partial pushes and still tests the final [publish] commit on ubuntu and macOS"
+  },
+  {
+    "date": "2026-10-08",
+    "session": "Midday session (12:04 PM)",
+    "role": "builder",
+    "action": "Built label declutter: when building names overlap on screen, the farther one fades out; Town Hall always stays, a hovered or open building comes next (checked 4 times a second, no per-frame cost)"
+  },
+  {
+    "date": "2026-10-08",
+    "session": "Midday session (12:04 PM)",
+    "role": "courier",
+    "action": "Midday inbox check (local only): 1 new to-do added to the Morning Brief on your own copy"
+  },
+  {
+    "date": "2026-10-08",
+    "session": "Midday session (12:04 PM)",
+    "role": "timekeeper",
+    "action": "Checked today's and tomorrow's calendar notes: still current, nothing new to add (local only)"
+  },
+  {
+    "date": "2026-10-08",
+    "session": "Midday session (12:04 PM)",
+    "role": "tutor",
+    "course": "Econ",
+    "action": "Econ: price elasticity of demand with the midpoint method",
+    "details": "The price of a sandwich rises from $4 to $6, and the quantity demanded falls from 120 to 80 per day. Using the midpoint method, what is the price elasticity of demand? Is demand elastic, inelastic, or unit elastic?",
+    "solution": "Midpoint method: %change in Q = (80 - 120) / ((80 + 120) / 2) = -40 / 100 = -0.4.\n%change in P = (6 - 4) / ((6 + 4) / 2) = 2 / 5 = 0.4.\nElasticity = -0.4 / 0.4 = -1 (absolute value 1).\nAn absolute value of exactly 1 means demand is unit elastic: total revenue stays the same ($4 x 120 = $480 and $6 x 80 = $480).",
+    "resource": "https://openstax.org/books/principles-economics-3e/pages/5-1-price-elasticity-of-demand-and-price-elasticity-of-supply",
+    "resource_title": "OpenStax Principles of Economics 3e: 5.1 Price Elasticity",
+    "answer": "-1",
+    "accept": [
+      "1"
+    ]
+  },
+  {
+    "date": "2026-10-08",
+    "session": "Midday session (12:04 PM)",
+    "role": "council",
+    "action": "Quick Council: YES, fade overlapping building labels, keeping Town Hall's label always visible",
+    "question": "Fade overlapping building labels, keeping Town Hall's label always visible?",
+    "size": "Quick",
+    "verdict": "YES",
+    "confidence": 8,
+    "reason": "Overlapping names were unreadable in the overview; one small throttled file fixes it and is easy to undo; search and the minimap still reach every building",
+    "ideals": "Seamless (3) and token-light (4): a clearer city with no per-frame cost"
+  },
+  {
+    "date": "2026-10-08",
+    "session": "Midday session (12:04 PM)",
+    "role": "council",
+    "action": "Quick Council: YES, skip the test workflow on partial publish-branch pushes, but still run it on the final [publish] commit",
+    "question": "Skip the test workflow on partial publish-branch pushes, but still run it on the final [publish] commit?",
+    "size": "Quick",
+    "verdict": "YES",
+    "confidence": 9,
+    "reason": "Partial pushes are incomplete by design, so their failures were pure noise (about 15 emails); the [publish] commit still gets the full ubuntu + macOS run and publish.yml still gates main",
+    "ideals": "Seamless (3) and token-light (4): no lost safety, far less noise"
+  },
+  {
+    "date": "2026-10-08",
+    "session": "Midday session (12:04 PM)",
+    "role": "council",
+    "action": "Quick Council: YES, catch up the missed 8:49 AM roles at midday (Courier, Timekeeper, Tutor), skipping Scout deep research and the Newsroom since today's digest exists",
+    "question": "Catch up the missed 8:49 AM roles at midday (Courier, Timekeeper, Tutor), skipping Scout deep research and the Newsroom since today's digest exists?",
+    "size": "Quick",
+    "verdict": "YES",
+    "confidence": 7,
+    "reason": "Keeps the Morning Brief and Study Hall fresh after a failed session while staying inside this session's M budget",
+    "ideals": "Seamless (3), useful (2), token-light (4)"
   }
 ]

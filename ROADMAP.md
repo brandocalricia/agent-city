@@ -33,6 +33,7 @@ Legend: [x] done · [ ] todo · (W) wow factor · (U) useful
 - [x] 2. Morning Brief kiosk in the plaza: Courier + Timekeeper notes combined (local copy only; public empty state)
 - [x] 3. Study Hall answer box: local check (numeric for expressions in x) before the solution unlocks
 - [x] 4. Prompt linter in the Prompt Workshop: paste a prompt, see what's missing (goal, context, done-when, output)
+- [x] 53. (part) Label declutter: overlapping building names fade, the farther one first; Town Hall always stays (chips overlap still open, #53)
 - [x] 29. Mobile/touch: tap to open, bottom-sheet panels, saver graphics on phones (virtual joystick moved to #46)
 
 ## Backlog (top = next)
@@ -81,3 +82,6 @@ Legend: [x] done · [ ] todo · (W) wow factor · (U) useful
 52. [ ] (U) Inspector live-version check: compare the live site's City.version with the last published one at the start of every session and finish any stalled publish first
 53. [ ] (U) HUD polish: the top-left status chips overlap each other at some widths; wrap or merge them
 54. [ ] (U) Prompt linter 'Fix it for me': a copy button that asks Grok Bot to rewrite the prompt with the missing parts filled from context
+55. [ ] (U) Label priority by activity: buildings whose role acted today win label overlaps and get a small dot (pairs with #23)
+56. [ ] (U) Missed-session recovery: when a scheduled session fails, the next one reads a small local state file and runs the roles it missed (as done by hand at midday Oct 8)
+57. [ ] (U) Morning Brief bills card (local only): dues and bills from the Courier with a 'pay or check by' countdown, never public

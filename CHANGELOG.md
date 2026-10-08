@@ -1,5 +1,19 @@
 # Agent City - Changelog
 
+## 2026-10-08 - Channel PR + thread-only link (no webhook required)
+- Pacing counts ad-hoc from every Grok Bot (e.g. Q1 DU Tutor / Math Tutor `source: math-tutor`); `pace.py` prints sessions / Agent City ad-hoc / math-tutor / other (reading drift); evening session report includes that breakdown
+- Message channel is now an open **pull request** titled Channel in `agent-city-comms` (not an issue), so Agent City's PR-comment listener wakes instantly; `comms.py` finds it by title or creates branch `channel` + `channel/README.md` + `gh pr create`
+- Thread-only is the default: `comms.py setup` with no URL/key succeeds (gh auth, create Channel PR + hello, write `AGENT_CITY_WEBHOOK=off`); webhook stays optional
+- Global rule auto-starts the watcher when `bot-webhook.env` exists and gh is signed in (not only when a webhook URL is present)
+- Session skill: every session first reads the Channel PR for new grok-build messages (dedupe by id; `channel-seen.json` gitignored); every grok-bot reply MUST start with `[from:grok-bot]`
+- Tests, README, AGENTS.md, bot-link skill, and rule updated; site version `2026-10-08q` (adds midday declutter.js)
+
+## 2026-10-08 - Midday: readable labels + quieter CI
+- Building names no longer pile on top of each other: when two labels overlap on screen, the farther one fades out, Town Hall's always stays, and a hovered or open building wins (checked 4 times a second, nothing per frame)
+- The test workflow now skips partial pushes to the publish branch, which were failing by design and sending about 15 failure emails this morning; the final [publish] commit is still tested on ubuntu and macOS
+- The 8:49 AM session failed, so its roles were caught up: Morning Brief inbox notes refreshed on the local copy, and a new Econ problem in the Study Hall (price elasticity, midpoint method) with an answer key
+- Quick Council: 3 YES verdicts; 3 new roadmap ideas
+
 ## 2026-10-08 - Channel bootstrap + one publish path
 - Message link is self-bootstrapping on Grok Build: `comms.py` setup/watch/send find the open issue titled Channel by title (create + first hello if missing); nothing hard-codes #1. Setup accepts URL+key as plain text in the prompt (also --clipboard / --url/--key), stores chmod 600, never echoes the key. Session start auto-launches the watcher once bot-webhook.env exists
 - Grok Bot replies by finding the Channel issue by title (noted in AGENTS.md)
