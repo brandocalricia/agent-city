@@ -24,7 +24,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 DEFAULT_BUDGET = os.path.join(os.path.dirname(HERE), "budget.json")
 TIERS = ("L", "M", "S")
 DEFAULT_TIER_PCT = {"S": 0.75, "M": 1.5, "L": 2.5}
-DEFAULT_SLOTS = ["08:49", "20:49", "23:49"]
+DEFAULT_SLOTS = ["02:49", "05:49", "08:49", "11:49", "14:49", "17:49", "20:49", "23:49"]  # the every-3-hours routine
 OVER_PACE_MINIMAL = 25.0   # points above the straight-line pace: at most a minimal session
 OVER_PACE_SKIP = 40.0      # points above pace: skip (log a one-line skip)
 
