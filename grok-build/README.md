@@ -8,15 +8,16 @@
 curl -fsSL https://raw.githubusercontent.com/brandocalricia/agent-city/main/grok-build/install.sh | bash
 ```
 
-Restart Grok, then `grok inspect`: look for the rule `40-agent-city.md`, the skills `city-council` and `city-apply`, and the hook `agent-city.json`.
+Restart Grok, then `grok inspect`: look for the rule `40-agent-city.md`, the skills `city-council`, `city-apply`, and `bot-link`, and the hook `agent-city.json`.
 
 | Installed to (`~/.grok`, or `$GROK_HOME`) | What it does |
 | --- | --- |
 | `rules/40-agent-city.md` | Short global rule, loaded every session: where the city files are, when to run city-apply |
 | `skills/city-council/SKILL.md` | `/city-council`: Quick (3 seats) or Full (14 seats + King + Red Team) YES/NO council for code decisions |
 | `skills/city-apply/SKILL.md` | `/city-apply`: review and apply. Each new suggestion gets a council verdict; YES is implemented, tested, and committed locally; NO is recorded with a reason |
+| `skills/bot-link/SKILL.md` | How to handle `[agent-city]` messages from the link and how to reply (from `comms/bot-link/`) |
 | `hooks/agent-city.json` | SessionStart hook that runs `agent-city/update.sh` |
-| `agent-city/` | `update.sh`, `city_apply.py` (apply helper), `suggestions.md`, `IDEALS.md`, `prompts.md`, `pending.txt`, `applied.log` + `applied.json` (local state, never overwritten), `updates.log`, `backup/` |
+| `agent-city/` | `update.sh`, `city_apply.py` (apply helper), `comms.py` (message link), `suggestions.md`, `IDEALS.md`, `prompts.md`, `pending.txt`, `applied.log` + `applied.json` (local state, never overwritten), `updates.log`, `backup/` |
 
 Needs `bash`, `curl`, `git`, and `python3` (macOS: Xcode command line tools).
 
@@ -34,11 +35,29 @@ Needs `bash`, `curl`, `git`, and `python3` (macOS: Xcode command line tools).
 
 Guardrails: never force-push, delete your data, add paid services, change `config.toml` or trust, or send anything externally. It pushes only in repos whose own workflow already pushes.
 
+## Message link (Grok Bot <-> Grok Build)
+
+A near-instant two-way thread between the owner's Agent City (Grok Bot) and a running Grok Build session. The channel and log is issue #1 of the owner's
+private repo `agent-city-comms`; each message is one comment headed `[from:grok-bot|grok-build] [id:<id>] [re:<id or ->]`.
+
+- **Agent City -> Grok Build:** the global rule starts `python3 -u ~/.grok/agent-city/comms.py watch` as a persistent monitor early in each interactive
+  session. It polls every 10 s with `If-None-Match` (unchanged polls are 304s that do not use rate limit), prints one `[agent-city] message ...` line
+  per new grok-bot message, stores its cursor in `~/.grok/agent-city/comms-state.json`, runs once across sessions (lock), backs off to 5 min when
+  offline, and exits when its session ends. The `bot-link` skill handles each line: questions answered, code changes through city-council.
+- **Grok Build -> Agent City:** `comms.py send [--re <id>] "text"` posts the comment with `gh` and POSTs `{id, re, text, from, comment_url}` to Agent
+  City's inbox webhook so it wakes at once. Without a webhook the comment alone still works (Agent City reads it on its next check). Max 1 send per 10 s
+  and 60 per hour.
+- **Setup (once):** `gh auth login`; copy the webhook block (curl example or URL + key) from Agent City's "Grok Build inbox" routine panel, then
+  `python3 ~/.grok/agent-city/comms.py setup --clipboard`. It writes `~/.grok/agent-city/bot-webhook.env` (chmod 600) and never prints the key.
+  Default header `Authorization: Bearer {key}`; edit `AGENT_CITY_WEBHOOK_HEADER` there for another format. `comms.py status` checks everything.
+- Needs `python3` and the GitHub CLI `gh`, signed in as the owner. Uninstall keeps the webhook config and cursor.
+
 ## Files here
 
 - [prompts.md](prompts.md): 7 copy-paste Grok Build prompts
 - [suggestions.md](suggestions.md): the current feed (generated; do not edit)
 - [skills/city-council/SKILL.md](skills/city-council/SKILL.md), [skills/city-apply/SKILL.md](skills/city-apply/SKILL.md)
+- [comms/](comms/): the message link (`comms.py`, the `bot-link` skill)
 - [../IDEALS.md](../IDEALS.md): the owner's ideals every council reads
 
 ## Turn it off

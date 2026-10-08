@@ -11,7 +11,7 @@ City.building({
   panel() {
     const t = City.latestFor('tutor');
     return `<h2>🎓 Study Hall</h2><p class="sub">One practice problem per session, rotating Calc I → intro to CS → econ. Try it before opening the solution.</p>`
-      + (t ? `<h4>Today's problem${t.course ? ' · ' + City.esc(t.course) : ''}</h4>` + City.entryCard(t) : '')
+      + (t ? `<h4>Today's problem${t.course ? ' · ' + City.esc(t.course) : ''}</h4>` + City.entryCard(t) : '') + (City.newsFor ? City.newsFor('tutor', 2) : '')
       + ['Calc I', 'Intro to CS', 'Econ'].map(c => { const L = City.DATA.finds.filter(f => f.status === 'adopted' && f.course === c && f.url);
           return L.length ? `<h4>📚 ${c} links</h4>` + L.map(f => City.card(`<a href="${City.esc(f.url)}" target="_blank" rel="noopener">${City.esc(f.title)}</a>`, 'set up by the Toolsmith', f.why_useful ? `<div class="m">${City.esc(f.why_useful)}</div>` : '')).join('') : ''; }).join('');
   },

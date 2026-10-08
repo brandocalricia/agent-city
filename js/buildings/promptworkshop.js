@@ -33,7 +33,7 @@ City.building({
   panel() {
     const C = City, { esc } = C, tip = C.latestFor('promptsmith');
     return `<h2>✍️ Prompt Workshop</h2><p class="sub">Small habits that make agents much more reliable. Copy a template, fill the brackets, paste it to Grok Bot.</p>`
-      + (tip ? `<h4>Latest tip</h4>` + C.entryCard(tip) : '')
+      + (tip ? `<h4>Latest tip</h4>` + C.entryCard(tip) : '') + (C.newsFor ? C.newsFor('promptsmith', 2) : '')
       + `<h4>Templates</h4>` + TEMPLATES.map(([t, body]) => C.card(esc(t), '', `<pre>${esc(body)}</pre>${C.copyBtn(body)}`)).join('')
       + gbSection();
   },

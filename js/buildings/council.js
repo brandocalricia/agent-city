@@ -32,7 +32,7 @@ Full Council (important: hard to undo, costs money, publishes under your name, d
 YES: built right away. NO: the item is closed with a reason.
 Actions only you can take (sign-ups, payments, messages) stay on the Notice Board.</pre>`)}
       ${(C.DATA.ideals || []).length ? `<h4>Ideals it rules by</h4><div class="card"><div class="m">${C.DATA.ideals.map(i => `<b>${i.n}. ${esc(i.title)}</b>`).join(' · ')}</div><div class="m">Full text in IDEALS.md. Every verdict notes how it fits.</div></div>` : ''}
-      <h4>Verdicts (${V.length}) ${badge(yes + ' YES', 'rgba(125,255,178,.2)', '#7dffb2')}${badge(no + ' NO', 'rgba(255,92,92,.2)', '#ff8a8a')}</h4>`
+      ${C.newsFor ? C.newsFor('council', 3) : ''}<h4>Verdicts (${V.length}) ${badge(yes + ' YES', 'rgba(125,255,178,.2)', '#7dffb2')}${badge(no + ' NO', 'rgba(255,92,92,.2)', '#ff8a8a')}</h4>`
       + (V.length ? V.map(a => C.card(esc(a.question || a.action),
           `${esc(a.date)} · ${esc(a.size || 'Quick')} Council`,
           `<div>${/^yes/i.test(a.verdict) ? badge('YES', 'rgba(125,255,178,.2)', '#7dffb2') : badge('NO', 'rgba(255,92,92,.2)', '#ff8a8a')}${a.confidence ? badge('confidence ' + a.confidence + '/10', 'rgba(94,231,255,.15)', '#5ee7ff') : ''}</div>`

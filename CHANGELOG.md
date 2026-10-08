@@ -1,5 +1,13 @@
 # Agent City - Changelog
 
+## 2026-10-08 - Message link + Newsroom
+- Two-way message link between Grok Bot and Grok Build: a private GitHub issue is the channel and the log; each comment starts with a `[from] [id] [re]` header
+- Grok Build side (grok-build/comms/comms.py + new `bot-link` skill): a watcher started as a persistent monitor polls every 10 s with ETag requests (unchanged polls cost no rate limit), prints one line per new message, keeps a cursor, runs once across sessions, backs off when offline, and exits if its session ends; `send` posts the comment through gh and wakes Grok Bot through its inbox webhook (max 1 per 10 s, 60 per hour); `setup --clipboard` reads the webhook config straight from the clipboard so the key never enters a chat; secrets are never printed
+- Installer and updater install the link; the global rule gained one line; 28 new tests for the link and 7 for the Newsroom (103 in total), run on ubuntu and macOS
+- New role and building: the Reporter works in the Newsroom (red-brick press building with a scrolling ticker next to the Treasury). Every morning it files a 5-8 story digest of LLM, agent, Grok and Grok Build news in news.json, each with its source, why it matters, and the roles it feeds; stories expire after 14 days
+- Newsroom stories now feed the Council, Market (Scout), Prompt Workshop, Study Hall (Tutor), and the Grok Build feed's context section
+- First digest: 7 stories (Grok Build 1.0.44 and 1.0.46, agent-ready codebases, temperature-0 non-determinism, Reflection Beam, Grok 4.7, Lean-checked math)
+
 ## 2026-10-08 - Cost agents + bulletproof Grok Build link
 - Every Grok Build item now carries mandatory `checks` (wiring: references resolve, config loads, lint/build, grok inspect, no duplicates) and 1-2 `tests`; build_data.py refuses to build when one is malformed or more than 3 arrive in a day
 - New helper grok-build/city_apply.py does all apply bookkeeping on the owner's machine: process-once log, claims for parallel sessions, max 3 applies an hour, runs checks before and after, rolls back from a snapshot on any failure, commits only the declared files, retries deferred items at most 3 times, reports half-applied items from crashed sessions
