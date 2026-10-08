@@ -3,7 +3,9 @@
 <head>
 <meta charset="utf-8">
 <title>Agent City</title>
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0d0f1a">
+<meta name="description" content="Agent City: a 3D city where AI agents live and work for the owner.">
 <link rel="icon" href="data:,">
 <link rel="stylesheet" href="css/style.css">
 <script src="data.js"></script>
@@ -22,32 +24,55 @@
 </head>
 <body>
 <div id="app"></div>
-<div id="hud" class="glass">
-  <div class="brand">Agent City <small id="dayTag"></small></div>
-  <div class="chips" id="chips"></div>
-  <div class="row">
-    <select id="goto" title="Fly to a building"><option value="">🗺 Go to…</option></select>
-    <button id="btnOverview">Overview <kbd>0</kbd></button>
-    <button id="btnWalk">🚶 Walk <kbd>Tab</kbd></button>
-  </div>
-  <div class="row" style="margin-top:6px">
-    <button id="btnTime">🕒 Live</button>
-    <button id="btnHelp" class="on">❔ Help <kbd>H</kbd></button>
-    <button id="btnQuality" class="on">✨ High <kbd>Q</kbd></button>
-  </div>
-</div>
-<div id="help" class="glass">
-  <h3>How to explore</h3>
+<div id="loading" role="status" aria-live="polite"><div class="ld-card"><div class="ld-logo">🏙</div><div class="ld-title">Agent City</div><div class="ld-bar"><i id="ldBar"></i></div><div class="ld-msg" id="ldMsg">Loading the 3D engine…</div></div></div>
+<header id="topbar" class="glass" role="banner">
+  <div class="brand"><span class="logo" aria-hidden="true">🏙</span> Agent City <small id="dayTag"></small></div>
+  <button id="btnSearch" class="search" aria-label="Search buildings and roles (slash or Ctrl+K)"><span aria-hidden="true">🔍</span><span class="ph">Search buildings, roles…</span><kbd>/</kbd></button>
+  <nav class="tb-actions" aria-label="City controls">
+    <button id="btnDash" title="Dashboard (D)" aria-label="Dashboard">🏠<span class="lbl"> Dashboard</span></button>
+    <button id="btnOverview" title="Overview (0)" aria-label="Fly to overview">🗺<span class="lbl"> Overview</span></button>
+    <button id="btnWalk" title="Walk mode (Tab)" aria-label="Walk mode">🚶<span class="lbl"> Walk</span></button>
+    <button id="btnTime" title="Time of day (T)" aria-label="Time of day">🕒</button>
+    <button id="btnSettings" title="Settings (,)" aria-label="Settings">⚙️</button>
+    <button id="btnKeys" title="Keyboard shortcuts (?)" aria-label="Keyboard shortcuts">⌨️</button>
+  </nav>
+</header>
+<div id="chips" class="chips"></div>
+<div id="palette" role="dialog" aria-modal="true" aria-label="Quick jump"><div class="pal-box glass">
+  <input id="paletteInput" type="search" placeholder="Jump to a building, role, or view…" autocomplete="off" aria-controls="paletteList" aria-label="Search">
+  <ul id="paletteList" role="listbox"></ul>
+  <div class="pal-foot"><kbd>↑</kbd><kbd>↓</kbd> choose · <kbd>Enter</kbd> go · <kbd>Esc</kbd> close</div>
+</div></div>
+<div id="shortcuts" role="dialog" aria-modal="true" aria-label="Keyboard shortcuts"><div class="sc-box glass">
+  <button class="close" aria-label="Close">✕</button>
+  <h3>Keyboard shortcuts</h3>
+  <dl>
+    <dt><kbd>/</kbd> <kbd>Ctrl</kbd>+<kbd>K</kbd></dt><dd>Search and jump anywhere</dd>
+    <dt><kbd>D</kbd></dt><dd>Dashboard</dd>
+    <dt><kbd>0</kbd></dt><dd>Overview of the skyline</dd>
+    <dt><kbd>1</kbd>–<kbd>4</kbd></dt><dd>Library, Office, Town Hall (Council), Market</dd>
+    <dt><kbd>Tab</kbd></dt><dd>Walk mode: <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd>, mouse look, <kbd>Shift</kbd> run, <kbd>E</kbd> open</dd>
+    <dt><kbd>T</kbd></dt><dd>Time of day: live, day, dusk, night</dd>
+    <dt><kbd>Q</kbd></dt><dd>Graphics: high or saver</dd>
+    <dt><kbd>L</kbd></dt><dd>Labels on or off</dd>
+    <dt><kbd>,</kbd></dt><dd>Settings</dd>
+    <dt><kbd>?</kbd> <kbd>H</kbd></dt><dd>This list</dd>
+    <dt><kbd>Esc</kbd></dt><dd>Close</dd>
+  </dl>
+  <p class="mute">Mouse: drag to orbit, right-drag to pan, scroll to zoom, click anything. Touch: drag to orbit, pinch to zoom, two fingers to pan, tap to open.</p>
+</div></div>
+<div id="onboard" class="glass" role="dialog" aria-label="Welcome">
+  <h3>👋 Welcome to Agent City</h3>
   <ul>
-    <li><b>Orbit:</b> drag to rotate, right-drag to pan, scroll to zoom</li>
-    <li><b>Click</b> a building, label, or character to open its panel</li>
-    <li><kbd>1</kbd>–<kbd>4</kbd> Library, Office, City Hall, Market · <kbd>0</kbd> overview · minimap click = fly</li>
-    <li><kbd>Tab</kbd> walk mode: <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd>, mouse look, <kbd>Shift</kbd> run, <kbd>E</kbd> open</li>
-    <li><kbd>T</kbd> time of day · <kbd>Q</kbd> laptop saver · <kbd>Esc</kbd> close panel</li>
+    <li><b>Tap or click</b> any building or glowing character to see what it does and what it has done.</li>
+    <li><b>Town Hall</b> in the center is the hub: the Council rules there, and neon trails show finished work flying home.</li>
+    <li><b>Search</b> with <kbd>/</kbd> to jump anywhere; <b>🏠 Dashboard</b> shows the whole city at a glance.</li>
   </ul>
+  <div class="row"><button id="onboardTour" class="primary">Open the dashboard</button><button id="onboardOk">Got it</button></div>
 </div>
-<canvas id="minimap" class="glass" width="180" height="180" title="Minimap: click to fly"></canvas>
-<div id="panel" class="glass"><button class="close" id="panelClose">✕</button><div id="panelBody"></div></div>
+<div id="toasts" aria-live="polite"></div>
+<canvas id="minimap" class="glass" width="180" height="180" title="Minimap: click to fly" aria-label="Minimap"></canvas>
+<aside id="panel" class="glass" role="dialog" aria-hidden="true"><button class="close" id="panelClose" aria-label="Close panel">✕</button><div id="panelBody"></div></aside>
 <div id="tip" class="glass"></div>
 <div id="crosshair"></div>
 <div id="walkhint" class="glass">Walk mode · click to look around · <kbd>E</kbd> interact · <kbd>Tab</kbd> back to orbit</div>
@@ -75,8 +100,10 @@ window.__cityStarted = true;
 window.addEventListener('error', e => cityError(String(e.message || e)));
 const bust = location.protocol === 'file:' ? '' : '?v=' + City.version;
 (async () => {
+  const bar = document.getElementById('ldBar'), msg = document.getElementById('ldMsg'); let n = 0;
+  if (msg) msg.textContent = 'Building the city…';
   for (const f of City.files) await new Promise((ok, bad) => {
-    const s = document.createElement('script'); s.src = f + bust; s.onload = ok;
+    const s = document.createElement('script'); s.src = f + bust; s.onload = () => { if (bar) bar.style.width = Math.round(++n / City.files.length * 100) + '%'; ok(); };
     s.onerror = () => bad(new Error('Could not load ' + f)); document.body.appendChild(s);
   });
   City.main();
