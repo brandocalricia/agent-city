@@ -115,9 +115,9 @@ C.blinkMat = new THREE.MeshBasicMaterial({ color: new THREE.Color(0xff3030).mult
 {
   const g = new THREE.Group(); scene.add(g);
   C.box(g, B, BASE + 0.05, B, M.plaza, 0, (BASE + 0.05) / 2, 0);
-  // Four low planters with autumn shrubs on the plaza corners
+  // Low planters with autumn shrubs on the two back plaza corners (the Notice Board and the Morning Brief kiosk take the front two)
   const shrub = new THREE.MeshStandardMaterial({ color: 0x5f7f3a, flatShading: true, roughness: 0.9 }), gold = new THREE.MeshStandardMaterial({ color: 0xc98b2b, flatShading: true, roughness: 0.9 });
-  for (const [sx, sz] of [[1, 1], [1, -1], [-1, -1]]) {
+  for (const [sx, sz] of [[1, -1], [-1, -1]]) {
     C.box(g, 5, 0.8, 5, M.stone, sx * 14.5, BASE + 0.4, sz * 14.5);
     for (let k = 0; k < 3; k++) { const b = new THREE.Mesh(new THREE.IcosahedronGeometry(1.1 + rnd() * 0.4, 0), k % 2 ? gold : shrub); b.position.set(sx * 14.5 + (rnd() - 0.5) * 2.6, BASE + 1.5, sz * 14.5 + (rnd() - 0.5) * 2.6); b.castShadow = true; g.add(b); }
     C.solids.push({ x0: sx * 14.5 - 2.5, x1: sx * 14.5 + 2.5, z0: sz * 14.5 - 2.5, z1: sz * 14.5 + 2.5 });

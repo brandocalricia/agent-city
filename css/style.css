@@ -167,3 +167,13 @@ body.no-minimap #minimap { display: none; }
   .role-tag .bubble { display: none; }
 }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
+/* Study Hall answer box */
+.answer { display: flex; gap: 6px; margin-top: 8px; }
+.answer input { flex: 1; min-width: 0; font: inherit; font-size: var(--fs-sm); color: var(--txt); background: var(--surface-2); border: 1px solid var(--line); border-radius: var(--r-sm); padding: 6px 8px; }
+.answer input:focus { outline: none; border-color: var(--acc); }
+.m.ok { color: var(--ok); } .m.bad { color: var(--bad); }
+
+/* Prompt linter (Prompt Workshop) */
+#lintInput { width: 100%; box-sizing: border-box; font: inherit; font-size: var(--fs-sm); color: var(--txt); background: var(--surface-2); border: 1px solid var(--line); border-radius: var(--r-sm); padding: 8px; resize: vertical; }
+#lintInput:focus { outline: none; border-color: var(--acc); }
+.lint { margin-top: 6px; }
