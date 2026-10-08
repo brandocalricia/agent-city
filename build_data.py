@@ -12,6 +12,8 @@ Sources:
   - activity.json / finds.json entries with a "gb" field  -> grok-build/suggestions.md (Grok Build feed, validated:
     a malformed gb entry stops the build so the session cannot publish) + grok-build/manifest.txt (sha256 per file)
   - ./costs.json                                (Meter Reader ledger + Optimizer savings, shown in the Treasury)
+  - ./news.json                                 (Reporter's morning digest: [{date,title,url,source,why,tag,for?}], validated;
+    stories older than NEWS_KEEP_DAYS drop out of data.js; `for` routes a story to the Council, Scout, Prompt Smith, Tutor, or GB)
   - ./private.json (gitignored) -> ./private.js (gitignored): Courier/Timekeeper notes, local copy only
 No data is invented: empty sources stay empty and the city shows an empty state.
 Run:  python3 build_data.py
@@ -28,10 +30,14 @@ GB_KEEP_DAYS = 60            # Apply-queue items older than this drop off the fe
 GB_MAX_PER_DAY = 3           # at most 3 new Grok Build items per day: each one costs the owner a council run
 DATA_ACTIVITY_CAP = 150      # data.js keeps the newest 150 actions + each role's newest 12 (Optimizer, 2026-10-08)
 DATA_ROLE_KEEP = 12
+NEWS_KEEP_DAYS = 14          # the Newsroom digest only covers the last 2 weeks (keeps data.js small)
+NEWS_MAX_PER_DAY = 8
+NEWS_TAGS = ("model", "agents", "grok", "grok-build", "technique", "tokens", "tools", "school")
+NEWS_FOR = ("council", "scout", "promptsmith", "tutor", "gb")
 # files Grok Build's updater may install; manifest.txt carries their sha256 (order = update order)
 GB_MANIFEST = ["grok-build/suggestions.md", "grok-build/prompts.md", "IDEALS.md", "grok-build/skills/city-council/SKILL.md",
                "grok-build/skills/city-apply/SKILL.md", "grok-build/rules/40-agent-city.md", "grok-build/hooks/agent-city.json",
-               "grok-build/city_apply.py", "grok-build/update.sh"]
+               "grok-build/city_apply.py", "grok-build/comms/bot-link/SKILL.md", "grok-build/comms/comms.py", "grok-build/update.sh"]
 
 
 def parse_frontmatter(text):
@@ -226,6 +232,46 @@ def gb_errors():
     return errs
 
 
+def news_errors():
+    """Malformed news.json stories stop the build (like gb items): the digest is public and must have real sources."""
+    p = os.path.join(HERE, "news.json")
+    if os.path.exists(p) and load_json("news.json", None) is None:
+        return ["news.json: not valid JSON"]
+    raw = load_json("news.json", [])
+    if not isinstance(raw, list):
+        return ["news.json: must be a list of stories"]
+    errs, per_day = [], {}
+    for i, x in enumerate(raw):
+        where = f"news.json #{i}"
+        if not isinstance(x, dict):
+            errs.append(f"{where}: not an object"); continue
+        if not re.match(r"^\d{4}-\d{2}-\d{2}$", str(x.get("date", ""))):
+            errs.append(f"{where}: date must be YYYY-MM-DD")
+        for k in ("title", "why", "source"):
+            if not isinstance(x.get(k), str) or not x[k].strip():
+                errs.append(f"{where}: missing {k}")
+        if not isinstance(x.get("url"), str) or not re.match(r"^https://\S+$", x["url"]):
+            errs.append(f"{where}: url must be an https link to the source")
+        if x.get("tag") not in NEWS_TAGS:
+            errs.append(f"{where}: tag must be one of {', '.join(NEWS_TAGS)}")
+        f = x.get("for", [])
+        if not isinstance(f, list) or any(d not in NEWS_FOR for d in f):
+            errs.append(f"{where}: for must be a list from {', '.join(NEWS_FOR)}")
+        per_day[x.get("date")] = per_day.get(x.get("date"), 0) + 1
+    errs += [f"news.json: {n} stories on {d} (max {NEWS_MAX_PER_DAY})" for d, n in sorted(per_day.items(), key=str) if n > NEWS_MAX_PER_DAY]
+    return errs
+
+
+def load_news(today=None):
+    """Stories from the last NEWS_KEEP_DAYS days, newest first (ties keep the Reporter's order)."""
+    today = today or datetime.date.today()
+    cutoff = (today - datetime.timedelta(days=NEWS_KEEP_DAYS)).isoformat()
+    keys = ("date", "title", "url", "source", "why", "tag")
+    raw = [x for x in load_json("news.json", []) if isinstance(x, dict) and str(x.get("date", "")) >= cutoff]
+    out = [dict({k: str(x.get(k, "")).strip() for k in keys}, **{"for": list(x.get("for", []))}) for x in raw]
+    return sorted(out, key=lambda x: x["date"], reverse=True)
+
+
 def gb_items(today=None):
     """Valid gb entries -> Apply-queue items. id = AC- + sha1(change)[:8]: stable across edits of anything but the change."""
     today = today or datetime.date.today()
@@ -272,6 +318,9 @@ def write_gb_suggestions(activity, items, generated):
     L += [f"- {a.get('date','')} {a.get('size','')} {a['verdict']} {a.get('confidence','?')}/10: {a.get('question','')} Reason: {a.get('reason','')}" for a in V] or ["(none yet)"]
     L += ["", "## Next best steps for the city (context)", ""]
     L += [f"{i}. {t}" for i, t in enumerate(next_steps(), 1)] or ["(none)"]
+    L += ["", "## Newsroom: recent news for Grok Build (context, not actionable)", ""]
+    NW = [n for n in load_news() if "gb" in n["for"]][:5]
+    L += [f"- {n['date']} [{n['title']}]({n['url']}) ({n['tag']}): {n['why']}" for n in NW] or ["(none yet)"]
     L += ["", "## Scout finds for Grok Build (context)", ""]
     F = [f for f in load_json("finds.json", []) if isinstance(f, dict) and f.get("gb")]
     L += [f"- [{f['title']}]({f.get('url','')}): {f.get('why_useful','')}" for f in F] or ["(none yet)"]
@@ -325,9 +374,9 @@ def write_private():
 
 
 def main():
-    errs = gb_errors()
+    errs = gb_errors() + news_errors()
     if errs:  # stop before writing anything, so a session can never publish a malformed feed
-        print("build_data.py: invalid gb entries (fix them; nothing was written):\n  " + "\n  ".join(errs), file=sys.stderr)
+        print("build_data.py: invalid gb entries or news stories (fix them; nothing was written):\n  " + "\n  ".join(errs), file=sys.stderr)
         return 1
     acts = load_activity()
     data = {
@@ -341,6 +390,7 @@ def main():
         "routines": load_routines(),
         "ideals": load_ideals(),
         "costs": load_costs(),
+        "news": load_news(),
     }
     items = gb_items()
     data["gb"] = [{k: i[k] for k in ("id", "change", "target", "size", "date", "checks", "tests")} for i in items]
@@ -352,7 +402,7 @@ def main():
         f.write("// AUTO-GENERATED by build_data.py - do not edit by hand.\n")
         f.write("window.CITY_DATA = " + json.dumps(data, ensure_ascii=False, separators=(",", ":")) + ";\n")
     os.replace(tmp, out)
-    print(f"data.js: {len(data['skills'])} skills, {len(data['agents'])} agents, {len(data['changelog'])} changelog entries, {len(data['finds'])} finds, {len(data['activity'])}/{len(acts)} actions, {len(data['routines'])} routines, {len(items)} Grok Build items; private.js: {'yes' if write_private() else 'no'}")
+    print(f"data.js: {len(data['skills'])} skills, {len(data['agents'])} agents, {len(data['changelog'])} changelog entries, {len(data['finds'])} finds, {len(data['activity'])}/{len(acts)} actions, {len(data['routines'])} routines, {len(items)} Grok Build items, {len(data['news'])} news; private.js: {'yes' if write_private() else 'no'}")
     return 0
 
 
