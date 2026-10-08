@@ -3,7 +3,7 @@ corrupt or partial downloads, never clobbering foreign files, throttle, lock, ki
 import os, re, shutil, time, unittest
 from helpers import BASH, GB, TempDir, env, make_raw, rewrite_manifest, run, sha
 
-INSTALLED = ["rules/40-agent-city.md", "skills/city-council/SKILL.md", "skills/city-apply/SKILL.md",
+INSTALLED = ["rules/40-agent-city.md", "skills/city-council/SKILL.md", "skills/city-apply/SKILL.md", "skills/bot-link/SKILL.md", "agent-city/comms.py",
              "hooks/agent-city.json", "agent-city/update.sh", "agent-city/city_apply.py"]
 
 
@@ -84,6 +84,25 @@ class Install(Base):
         for f in INSTALLED:
             self.assertFalse(os.path.exists(os.path.join(self.G, f)), f)
         self.assertTrue(os.path.exists(os.path.join(self.D, "applied.log")))
+
+    def test_uninstall_keeps_message_link_config(self):
+        self.install()
+        for f in ("bot-webhook.env", "comms-state.json"):
+            with open(os.path.join(self.D, f), "w") as fh:
+                fh.write("kept\n")
+        self.install("--uninstall")
+        self.assertFalse(os.path.exists(os.path.join(self.D, "comms.py")))
+        self.assertFalse(os.path.exists(os.path.join(self.G, "skills", "bot-link")))
+        for f in ("bot-webhook.env", "comms-state.json"):
+            self.assertTrue(os.path.exists(os.path.join(self.D, f)), f)
+
+    def test_update_installs_message_link(self):
+        self.install()
+        for f in ("agent-city/comms.py", "skills/bot-link/SKILL.md"):
+            os.remove(os.path.join(self.G, f))
+        self.update("--force")
+        self.assertTrue(os.access(os.path.join(self.D, "comms.py"), os.X_OK))
+        self.assertTrue(os.path.exists(os.path.join(self.G, "skills", "bot-link", "SKILL.md")))
 
     def test_offline_install_changes_nothing(self):
         r = self.install(e=env(self.home, "file://" + os.path.join(self.d, "nowhere")))
