@@ -11,7 +11,8 @@ Sources:
   - ./IDEALS.md                                 (the user's ideals; the Council checks every ruling against them)
   - activity.json / finds.json entries with a "gb" field  -> grok-build/suggestions.md (Grok Build feed, validated:
     a malformed gb entry stops the build so the session cannot publish) + grok-build/manifest.txt (sha256 per file)
-  - ./costs.json                                (Meter Reader ledger + Optimizer savings, shown in the Treasury)
+  - ./costs.json                                (Meter Reader ledger + Optimizer savings, shown in the Treasury;
+    tools/treasury.py adds lifetime totals and, on the local copy only, weekly pacing numbers from budget.json via tools/pace.py)
   - ./news.json                                 (Reporter's morning digest: [{date,title,url,source,why,tag,for?}], validated;
     stories older than NEWS_KEEP_DAYS drop out of data.js; `for` routes a story to the Council, Scout, Prompt Smith, Tutor, or GB)
   - ./private.json (gitignored) -> ./private.js (gitignored): Courier/Timekeeper notes, local copy only
@@ -23,6 +24,7 @@ import json, os, re, glob, datetime, hashlib, sys
 ROOT = "/home/box/agent-data"
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.join(HERE, "grok-build"))
+sys.path.insert(0, os.path.join(HERE, "tools"))
 from city_apply import command_problem, PLACEHOLDERS  # one command allowlist for both ends
 
 GB_TARGET_RE = re.compile(r"^(global|repo:[A-Za-z0-9._-]+)$")
@@ -356,7 +358,14 @@ def load_costs():
     c = load_json("costs.json", {})
     if not isinstance(c, dict):
         return {"ledger": [], "savings": []}
-    return {"ledger": [x for x in c.get("ledger", []) if isinstance(x, dict)], "savings": [x for x in c.get("savings", []) if isinstance(x, dict)]}
+    return {"ledger": [x for x in c.get("ledger", []) if isinstance(x, dict)][-12:], "savings": [x for x in c.get("savings", []) if isinstance(x, dict)]}
+
+
+def load_treasury(acts, capped):
+    import treasury
+    c = load_json("costs.json", {})
+    size = lambda a: len(json.dumps(a, ensure_ascii=False, separators=(",", ":")).encode("utf-8"))
+    return treasury.summarize(c if isinstance(c, dict) else {}, os.path.join(HERE, "budget.json"), size(acts) - size(capped))
 
 
 def write_private():
@@ -379,18 +388,20 @@ def main():
         print("build_data.py: invalid gb entries or news stories (fix them; nothing was written):\n  " + "\n  ".join(errs), file=sys.stderr)
         return 1
     acts = load_activity()
+    capped = cap_activity(acts)
     data = {
         "generatedAt": datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%d %H:%M UTC"),
         "skills": load_skills(),
         "agents": load_agents(),
         "changelog": load_changelog(),
         "finds": load_finds(),
-        "activity": cap_activity(acts),
+        "activity": capped,
         "totals": {"actions": len(acts), "sessions": len({a.get("session") for a in acts if a.get("session")})},
         "routines": load_routines(),
         "ideals": load_ideals(),
         "costs": load_costs(),
         "news": load_news(),
+        "treasury": load_treasury(acts, capped),
     }
     items = gb_items()
     data["gb"] = [{k: i[k] for k in ("id", "change", "target", "size", "date", "checks", "tests")} for i in items]
