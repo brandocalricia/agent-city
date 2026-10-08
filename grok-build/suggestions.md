@@ -1,6 +1,6 @@
 # Agent City suggestions for Grok Build
 
-Generated 2026-10-08 05:55 UTC by build_data.py; refreshed every city session. Read by the `city-apply` skill.
+Generated 2026-10-08 07:09 UTC by build_data.py; refreshed every city session. Read by the `city-apply` skill.
 Only the Apply queue is actionable. Each id is processed once; local state is `~/.grok/agent-city/applied.json`.
 Every item carries checks (run before and after; `$ ` lines are commands) and tests (must pass). Items without them are skipped.
 
@@ -30,17 +30,18 @@ Every item carries checks (run before and after; `$ ` lines are commands) and te
 
 ## Latest Council verdicts (context; already handled in the city)
 
+- 2026-10-08 Quick YES 8/10: Should Grok Bot's notes and the city's own links point straight at a panel with deep links (e.g. #council) from now on? Reason: Pragmatist: lands the owner exactly where the news is, at no runtime cost. Risk Officer: only public building and role ids ever go in a link, never private data. Resource Realist: no extra tokens. Red Team strike: links to a renamed building would quietly do nothing; rebutted, since unknown links fall back to the normal city view.
 - 2026-10-08 Full YES 7/10: Is the Agent City <-> Grok Build interchange (public feed, manifest updater, city_apply helper, council gate) safe, cheap, and reliable enough to run unattended on the owner's machine every session? Reason: Integrity, process-once, rollback and resource limits are tested (68 tests, ubuntu + macOS CI) and every change still needs a local council YES plus passing checks and tests. Dissent (Devil's Advocate): `grok inspect` output and hook-before-rules ordering are unverified on a real Grok Build install, so global items may fail and roll back until confirmed.
 - 2026-10-08 Quick YES 5/10: Roadmap #34: should the Notice Board play confetti when it reaches All clear? Reason: A cheap one-shot reward for clearing the board that supports the come-back-astounded goal and adds no recurring tokens. Dissent (Resource Realist): it will rarely be seen; kept as a short burst only.
 - 2026-10-08 Quick YES 9/10: Roadmap #33: should each Tutor problem link to the matching section of an adopted study resource? Reason: Costs a few tokens per Tutor run, is easy to undo, and turns the adopted Calc I notes into a next step after each problem. Red Team: links may go stale; the Critic's link check covers that.
 
 ## Next best steps for the city (context)
 
-1. (U) Deep links: open a panel from the URL hash (e.g. /agent-city/#market, #role=tutor) so Grok Bot can link you straight to something
-2. (U) Morning-brief kiosk in the plaza: Courier + Timekeeper notes combined (local copy only)
-3. (U) Study Hall answer box: type your answer, get a local check before the solution unlocks
-4. (U) Prompt linter in the Prompt Workshop: paste a prompt, see what's missing (goal, context, done-when, format)
-5. (U) Review Board checklist view: the Critic's pass/fail checks as icons per role
+1. (U) Morning-brief kiosk in the plaza: Courier + Timekeeper notes combined (local copy only)
+2. (U) Study Hall answer box: type your answer, get a local check before the solution unlocks
+3. (U) Prompt linter in the Prompt Workshop: paste a prompt, see what's missing (goal, context, done-when, format)
+4. (U) Review Board checklist view: the Critic's pass/fail checks as icons per role
+5. (W) Agents follow sidewalks/crosswalks; idle animations by role (reading, typing, hammering)
 
 ## Newsroom: recent news for Grok Build (context, not actionable)
 
