@@ -16,10 +16,31 @@ case "$1" in
   auth) [ -n "$FAKE_GH_NOAUTH" ] && { echo "You are not logged into any GitHub hosts" >&2; exit 1; }
         echo "ghtok_SECRET_123" ;;
   api) if [ "$2" = "--method" ]; then
+         method="$3"; path="$4"
          cat > "$FAKE_GH_DIR/body.json"
          [ -n "$FAKE_GH_FAIL" ] && { echo "gh: Server Error (HTTP 502)" >&2; exit 1; }
-         echo '{"id": 99, "html_url": "https://github.com/o/r/issues/1#issuecomment-99"}'
-       else echo 1; fi ;;
+         case "$path" in
+           */issues/*/comments)
+             echo '{"id": 99, "html_url": "https://github.com/o/r/issues/1#issuecomment-99"}' ;;
+           */issues)
+             # create Channel issue
+             echo '{"number": 7, "title": "Channel", "html_url": "https://github.com/o/r/issues/7"}' ;;
+           *) echo '{"ok": true}' ;;
+         esac
+       else
+         path="$2"
+         case "$path" in
+           *'/issues?state=open'*|*'issues?state=open'*)
+             if [ -n "$FAKE_GH_NO_CHANNEL" ]; then
+               echo '[]'
+             else
+               echo '[{"number":1,"title":"Channel","state":"open"}]'
+             fi ;;
+           */issues/[0-9]*)
+             echo 1 ;;
+           *) echo 1 ;;
+         esac
+       fi ;;
 esac
 """
 
@@ -80,7 +101,8 @@ class Base(unittest.TestCase):
         self.bin = os.path.join(self.d, "bin"); os.makedirs(self.bin)
         p = os.path.join(self.bin, "gh"); write(p, FAKE_GH); os.chmod(p, 0o755)
         self.e = dict(os.environ, HOME=self.d, GROK_HOME=self.G, FAKE_GH_DIR=self.d,
-                      PATH=self.bin + os.pathsep + "/usr/bin:/bin", PYTHONDONTWRITEBYTECODE="1")
+                      PATH=self.bin + os.pathsep + "/usr/bin:/bin", PYTHONDONTWRITEBYTECODE="1",
+                      AGENT_CITY_COMMS_ISSUE="1")
         self.servers = []
         os.environ["GROK_HOME"] = self.G
 
@@ -338,8 +360,40 @@ class Setup(Base):
     def test_status(self):
         r = self.comms("status")
         self.assertEqual(r.returncode, 0)
-        for word in ("gh: signed in", "webhook: not configured", "watcher: not running", "sends this hour: 0"):
+        for word in ("gh: signed in", "Channel", "webhook: not configured", "watcher: not running", "sends this hour: 0"):
             self.assertIn(word, r.stdout)
+
+    def test_setup_accepts_plain_text_argv(self):
+        r = self.comms("setup", "URL: https://hooks.example/hooks/SECRETPATH Key: %s" % KEY)
+        self.assertEqual(r.returncode, 0, r.stdout)
+        self.assertIn("host hooks.example", r.stdout)
+        self.assertNotIn(KEY, r.stdout)
+        p = os.path.join(self.D, "bot-webhook.env")
+        self.assertEqual(stat.S_IMODE(os.stat(p).st_mode), 0o600)
+        self.assertIn(KEY, read(p))
+
+    def test_channel_resolves_by_title_and_creates(self):
+        # no env override: list empty -> create returns #7 + hello comment
+        e = dict(self.e, FAKE_GH_NO_CHANNEL="1")
+        e.pop("AGENT_CITY_COMMS_ISSUE", None)
+        os.environ.pop("AGENT_CITY_COMMS_ISSUE", None)
+        try:
+            n = None
+            # patch through subprocess: call channel_number via watch start failure path is heavy;
+            # call the module helpers with PATH pointing at fake gh
+            old = dict(os.environ)
+            os.environ.clear(); os.environ.update(e)
+            try:
+                n = comms.channel_number(create=True)
+            finally:
+                os.environ.clear(); os.environ.update(old)
+            self.assertEqual(n, 7)
+            args = read(os.path.join(self.d, "args"))
+            self.assertIn("repos/brandocalricia/agent-city-comms/issues", args)
+            self.assertIn("--method POST", args)  # may appear as separate: check body was written
+            self.assertTrue(os.path.exists(os.path.join(self.d, "body.json")))
+        finally:
+            os.environ["AGENT_CITY_COMMS_ISSUE"] = "1"
 
 
 class Hygiene(unittest.TestCase):

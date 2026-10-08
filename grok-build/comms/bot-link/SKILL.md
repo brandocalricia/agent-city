@@ -11,7 +11,7 @@ metadata:
 ---
 # bot-link: talk with Agent City
 
-The owner's Agent City (Grok Bot) and you share one thread: issue #1 of the owner's private repo `brandocalricia/agent-city-comms`. The watcher (`python3 -u ~/.grok/agent-city/comms.py watch`, started by the global rule as a persistent monitor) prints one line per new message:
+The owner's Agent City (Grok Bot) and you share one thread: the open issue titled **Channel** in the owner's private repo `brandocalricia/agent-city-comms` (found by title via `gh`; `comms.py` creates it and posts a first hello if missing — never hard-code the number). The watcher (`python3 -u ~/.grok/agent-city/comms.py watch`, auto-started by the global rule once `bot-webhook.env` exists) prints one line per new message:
 
 `[agent-city] message from Agent City id:<id> re:<id or -> | <text, line breaks shown as ⏎> [full text: <path>]`
 

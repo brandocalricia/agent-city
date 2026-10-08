@@ -24,23 +24,21 @@ Each ledger entry also carries `saved_kb`/`saved_tokens` (measured savings, meth
 Never delete ledger entries without adding their totals to `archived`: `tools/treasury.py` sums ledger + archived into the Treasury's lifetime totals.
 Both log one activity.json line; the Treasury shows lifetime savings, cost per build, the weekly limit vs plan, the trend, and the biggest savings.
 
-**Newsroom (Reporter, every morning; evenings only a quick check for big breaking news):** reads the latest LLM, AI agent, Grok/xAI and Grok Build
+**Newsroom (Reporter):** full run at the **8:49 AM** session (append 5-8 stories for the day); light check at the **8:49 PM** session (at most 2 breaking stories, or skip). Reads the latest LLM, AI agent, Grok/xAI and Grok Build
 news (x connector `search_news`/`get_news`/`search_posts_all`, plus WebSearch; primary sources such as the Grok Build changelog first) and appends
-5-8 stories for the day to `news.json`: `{date, title, url (https, the source), source, why (one line: why it matters for the city or Grok Build),
+stories to `news.json`: `{date, title, url (https, the source), source, why (one line: why it matters for the city or Grok Build),
 tag: model|agents|grok|grok-build|technique|tokens|tools|school, for: [council|scout|promptsmith|tutor|gb]}`. Label X News stories "X News (summary of
 posts)"; never invent a story or a number. `for` routes a story into that role's panel ("From the Newsroom") and, for `gb`, into the context part of
 `grok-build/suggestions.md`; the Council, Scout, Prompt Smith, and Tutor read their routed stories before acting. Something actionable for Grok Build
 becomes a normal gb item (with checks and tests, within the 3-a-day cap). Delete stories older than 14 days from news.json (build_data.py also drops them
 from data.js). Max 8 stories per day; a malformed story stops the build like a malformed gb item. Log one activity.json line (`role: 'reporter'`).
 
-**Message link (Grok Bot <-> Grok Build):** a private thread, issue #1 of `brandocalricia/agent-city-comms` (never copy its contents into this public repo).
-Each message is one comment whose first line is `[from:grok-bot|grok-build] [id:<short id>] [re:<id or ->]`, then the body. Grok Bot posts with the GitHub
-connector (`add_issue_comment`), ids `b` + 5-6 base36 chars; Grok Build replies with `grok-build/comms/comms.py send` (comment via `gh` + a POST of
-`{id, re, text, from, comment_url}` to Grok Bot's "Grok Build inbox" routine webhook). Grok Build's watcher (`comms.py watch`, a persistent monitor started
-by the global rule) polls every 10 s with ETag/If-None-Match and prints one line per new grok-bot message; the `bot-link` skill says how to handle it
+**Message link (Grok Bot <-> Grok Build):** a private thread — the open issue titled **Channel** in `brandocalricia/agent-city-comms` (find by title, never hard-code the number; never copy its contents into this public repo).
+Grok Bot replies by finding that Channel issue by title, then posting with the GitHub connector (`add_issue_comment`), ids `b` + 5-6 base36 chars. Each message is one comment whose first line is `[from:grok-bot|grok-build] [id:<short id>] [re:<id or ->]`, then the body. Grok Build's `comms.py` (setup/watch/send) resolves the same issue by title via `gh` (creates it and posts a first grok-build hello if missing), then replies with `send` (comment via `gh` + a POST of
+`{id, re, text, from, comment_url}` to Grok Bot's "Grok Build inbox" routine webhook). Grok Build's watcher (`comms.py watch`, a persistent monitor auto-started by the global rule once `bot-webhook.env` exists) polls every 10 s with ETag/If-None-Match and prints one line per new grok-bot message; the `bot-link` skill says how to handle it
 (questions answered directly, code changes go through city-council, never secrets or external sends). Dedupe by comment id and message id, ignore your own
-messages, reply once, never reply to plain acknowledgements; Grok Build's send is capped at 1 per 10 s and 60 per hour. Webhook URL and sender key live
-only in `~/.grok/agent-city/bot-webhook.env` on the owner's Mac (chmod 600), never in any repo or message.
+messages, reply once, never reply to plain acknowledgements; Grok Build's send is capped at 1 per 10 s and 60 per hour. Webhook URL and sender key are pasted as plain text into `comms.py setup` (or `--clipboard` / `--url`/`--key`) and live
+only in `~/.grok/agent-city/bot-webhook.env` on the owner's Mac (chmod 600, never echoed), never in any repo or message.
 
 **Pacing (every session, first):** `python3 tools/pace.py` reads the local, gitignored `budget.json` (latest real usage reading + logged `sessions` and `adhoc`
 entries since) and prints the size for this session (L/M/S/minimal/skip). Size the session from it, and log the session in `budget.json` `sessions` at the end;
@@ -75,5 +73,4 @@ sender names, and amounts never go into pushed files; push only changed files; b
 (merge/instance geometry, no extra dynamic lights, respect the `Q` saver toggle).
 
 ## Never break the live site
-The site at https://brandocalricia.github.io/agent-city/ must keep working while work is in progress. Build and verify locally first; publish all changed files in one commit. If a push must be split, push new files first and the files that reference them (index.html, js/manifest.js, data.js) last. After publishing, load the live URL and confirm no failed requests.
-Large publishes (more than a few files, or anything a single call can't carry) go through the `publish` branch: create it from main, push the changed files in any number of commits (the live site only serves main), and put `[publish]` in the LAST commit message. `.github/workflows/publish.yml` then runs the tests, refuses if main changed meanwhile in files the branch differs on, regenerates data.js and the Grok Build feed (off the box, build_data.py keeps the committed data.js's skills, agents and routines), moves main to the branch's files in ONE commit, asks Pages to rebuild, and deletes the branch. So a publish-branch session pushes data.js only when skills, agents or routines changed. A session that stops partway leaves main untouched. At the start of each session, compare the live `City.version` with the local one and finish any stalled publish first.
+The site at https://brandocalricia.github.io/agent-city/ must keep working while work is in progress. Build and verify locally first. **One publish method only:** always use the `publish` branch (never push straight to `main` from a session). Create `publish` from main, push the changed files in any number of commits (the live site only serves main), and put `[publish]` in the LAST commit message. `.github/workflows/publish.yml` then runs the tests, refuses if main changed meanwhile in files the branch differs on, regenerates data.js and the Grok Build feed (off the box, build_data.py keeps the committed data.js's skills, agents and routines), moves main to the branch's files in ONE commit, asks Pages to rebuild, and deletes the branch. A session that stops partway leaves main untouched. After the Action finishes, load the live URL and confirm no failed requests. At the start of each session, compare the live `City.version` with the local one and finish any stalled publish first.

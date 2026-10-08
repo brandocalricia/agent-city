@@ -37,19 +37,22 @@ Guardrails: never force-push, delete your data, add paid services, change `confi
 
 ## Message link (Grok Bot <-> Grok Build)
 
-A near-instant two-way thread between the owner's Agent City (Grok Bot) and a running Grok Build session. The channel and log is issue #1 of the owner's
-private repo `agent-city-comms`; each message is one comment headed `[from:grok-bot|grok-build] [id:<id>] [re:<id or ->]`.
+A near-instant two-way thread between the owner's Agent City (Grok Bot) and a running Grok Build session. The channel and log is the open issue titled
+**Channel** in the owner's private repo `agent-city-comms` (found by title; never hard-coded by number); each message is one comment headed
+`[from:grok-bot|grok-build] [id:<id>] [re:<id or ->]`.
 
-- **Agent City -> Grok Build:** the global rule starts `python3 -u ~/.grok/agent-city/comms.py watch` as a persistent monitor early in each interactive
-  session. It polls every 10 s with `If-None-Match` (unchanged polls are 304s that do not use rate limit), prints one `[agent-city] message ...` line
-  per new grok-bot message, stores its cursor in `~/.grok/agent-city/comms-state.json`, runs once across sessions (lock), backs off to 5 min when
-  offline, and exits when its session ends. The `bot-link` skill handles each line: questions answered, code changes through city-council.
-- **Grok Build -> Agent City:** `comms.py send [--re <id>] "text"` posts the comment with `gh` and POSTs `{id, re, text, from, comment_url}` to Agent
-  City's inbox webhook so it wakes at once. Without a webhook the comment alone still works (Agent City reads it on its next check). Max 1 send per 10 s
-  and 60 per hour.
-- **Setup (once):** `gh auth login`; copy the webhook block (curl example or URL + key) from Agent City's "Grok Build inbox" routine panel, then
-  `python3 ~/.grok/agent-city/comms.py setup --clipboard`. It writes `~/.grok/agent-city/bot-webhook.env` (chmod 600) and never prints the key.
-  Default header `Authorization: Bearer {key}`; edit `AGENT_CITY_WEBHOOK_HEADER` there for another format. `comms.py status` checks everything.
+- **Agent City -> Grok Build:** once `bot-webhook.env` exists, the global rule starts `python3 -u ~/.grok/agent-city/comms.py watch` as a persistent
+  monitor early in each interactive session. It resolves Channel by title (creates + first hello if missing), polls every 10 s with `If-None-Match`
+  (unchanged polls are 304s that do not use rate limit), prints one `[agent-city] message ...` line per new grok-bot message, stores its cursor in
+  `~/.grok/agent-city/comms-state.json`, runs once across sessions (lock), backs off to 5 min when offline, and exits when its session ends. The
+  `bot-link` skill handles each line: questions answered, code changes through city-council.
+- **Grok Build -> Agent City:** `comms.py send [--re <id>] "text"` resolves Channel, posts the comment with `gh`, and POSTs
+  `{id, re, text, from, comment_url}` to Agent City's inbox webhook so it wakes at once. Without a webhook the comment alone still works (Agent City
+  reads it on its next check). Max 1 send per 10 s and 60 per hour.
+- **Setup (once):** `gh auth login`; paste the webhook URL and key from Agent City's "Grok Build inbox" routine panel into
+  `python3 ~/.grok/agent-city/comms.py setup` (plain text in the prompt, or `--clipboard`, or `--url`/`--key`). It writes
+  `~/.grok/agent-city/bot-webhook.env` (chmod 600), never echoes the key, and creates the Channel issue if missing. Default header
+  `Authorization: Bearer {key}`; edit `AGENT_CITY_WEBHOOK_HEADER` there for another format. `comms.py status` checks everything.
 - Needs `python3` and the GitHub CLI `gh`, signed in as the owner. Uninstall keeps the webhook config and cursor.
 
 ## Files here

@@ -1,21 +1,22 @@
 #!/usr/bin/env python3
 """Agent City <-> Grok Build message link (comms.py). Python 3.8+, stdlib only, macOS and Linux.
 
-The thread is issue #1 of the owner's private repo brandocalricia/agent-city-comms. Every message is one issue
-comment whose first line is a header, then the body:
+The thread is the open issue titled "Channel" in the owner's private repo brandocalricia/agent-city-comms
+(found by title, never hard-coded by number). setup/watch/send create it if missing and post a first grok-build
+hello. Every message is one issue comment whose first line is a header, then the body:
     [from:grok-bot|grok-build] [id:<short id>] [re:<id or ->]
 
-  comms.py watch     poll the thread every 10 s (ETag / If-None-Match, so unchanged polls are 304s that do not
-                     count against the rate limit) and print each new grok-bot message as ONE line for Grok
-                     Build's monitor tool. Single instance (lock), last-seen cursor in comms-state.json, backs off
-                     when offline, prints nothing else unless something needs attention.
+  comms.py watch     resolve the Channel issue (create + hello if missing), poll every 10 s (ETag / If-None-Match)
+                     and print each new grok-bot message as ONE line. Single instance (lock), cursor in
+                     comms-state.json, backs off when offline.
   comms.py send [--re ID] TEXT   (TEXT "-" reads stdin)
-                     post the message as a comment via gh, then POST {id, re, text, from, comment_url} to Agent
-                     City's inbox webhook (wakes it at once). Max 1 send per 10 s and 60 per hour.
-  comms.py setup [--clipboard | --url U --key K [--header 'Name: Bearer {key}']]
-                     store the webhook config from whatever the routine panel shows (a curl example, or URL and
-                     key) in ~/.grok/agent-city/bot-webhook.env (chmod 600). Secrets are never printed.
-  comms.py status    gh, repo access, webhook, watcher, cursor, send budget. Never prints secrets.
+                     resolve Channel, post the comment via gh, then POST {id, re, text, from, comment_url} to
+                     Agent City's inbox webhook. Max 1 send per 10 s and 60 per hour.
+  comms.py setup [--clipboard | --url U --key K | paste text]
+                     store the webhook config from a curl example, URL+key flags, or plain text pasted in the
+                     prompt (stdin or a quoted argument) in ~/.grok/agent-city/bot-webhook.env (chmod 600).
+                     Secrets are never printed or echoed.
+  comms.py status    gh, Channel issue, webhook, watcher, cursor, send budget. Never prints secrets.
 
 Needs the GitHub CLI signed in (`gh auth login`); the watcher reads its token with `gh auth token`.
 """
@@ -24,8 +25,9 @@ import urllib.error, urllib.parse, urllib.request
 from datetime import datetime, timedelta, timezone
 
 REPO = os.environ.get("AGENT_CITY_COMMS_REPO", "brandocalricia/agent-city-comms")
-ISSUE = int(os.environ.get("AGENT_CITY_COMMS_ISSUE", "1"))
 API = os.environ.get("AGENT_CITY_COMMS_API", "https://api.github.com").rstrip("/")
+CHANNEL_TITLE = os.environ.get("AGENT_CITY_COMMS_TITLE", "Channel")
+HELLO_TEXT = "Link is up from Grok Build. Reply with ping to test."
 ME, PEER = "grok-build", "grok-bot"
 TAG = "[agent-city]"
 INTERVAL = 10.0          # seconds between polls
@@ -120,7 +122,7 @@ def format_line(msg):
     return line + text + (" [full text: %s]" % full if full else "")
 
 
-def process(state, comments):
+def process(state, comments, issue=None):
     """New comments -> notification lines. Dedupes by comment id (a cursor; edits of old comments come back
     through `since` and are ignored) and by message id (a message re-posted after a retry); ignores our own
     messages and comments without a header. Mutates state; returns the lines to print."""
@@ -142,8 +144,9 @@ def process(state, comments):
     state["seen_ids"] = seen[-200:]
     lines = []
     if len(fresh) > MAX_PER_POLL:
+        issue_n = issue if issue is not None else state.get("channel_issue") or 0
         lines.append("%s %d older Agent City messages skipped (read them in https://github.com/%s/issues/%d)"
-                     % (TAG, len(fresh) - MAX_PER_POLL, REPO, ISSUE))
+                     % (TAG, len(fresh) - MAX_PER_POLL, REPO, int(issue_n or 0)))
         fresh = fresh[-MAX_PER_POLL:]
     return lines + [format_line(m) for m in fresh]
 
@@ -214,6 +217,89 @@ def token_allowed(api):
     return api.startswith("https://api.github.com") or host in ("127.0.0.1", "localhost")
 
 
+def _gh_api(args, input_text=None, timeout=30):
+    """Run `gh api ...`. Returns (ok, stdout_or_err). Never logs tokens or bodies."""
+    try:
+        r = subprocess.run(["gh", "api"] + list(args), input=input_text, capture_output=True, text=True, timeout=timeout)
+    except subprocess.TimeoutExpired:
+        return False, "gh timed out"
+    except OSError as e:
+        return False, "gh failed to start (%s)" % type(e).__name__
+    if r.returncode != 0:
+        err = (r.stderr.strip().splitlines() or ["gh exited %d" % r.returncode])[-1]
+        return False, err[:200]
+    return True, r.stdout
+
+
+def _title_match(title):
+    return (title or "").strip().casefold() == CHANNEL_TITLE.strip().casefold()
+
+
+def find_channel_issue():
+    """Open issue whose title is Channel (exact, case-insensitive), or None. Env override for tests."""
+    override = os.environ.get("AGENT_CITY_COMMS_ISSUE")
+    if override:
+        try:
+            return int(override)
+        except ValueError:
+            pass
+    ok, raw = _gh_api(["repos/%s/issues?state=open&per_page=100" % REPO])
+    if not ok:
+        return None
+    try:
+        items = json.loads(raw or "[]")
+    except ValueError:
+        return None
+    if not isinstance(items, list):
+        return None
+    for it in items:
+        if isinstance(it, dict) and _title_match(it.get("title")) and not it.get("pull_request"):
+            n = it.get("number")
+            if isinstance(n, int):
+                return n
+    return None
+
+
+def create_channel_issue():
+    """Create the Channel issue. Returns number or None. Body never includes secrets."""
+    body = ('Private message channel between Agent City (Grok Bot) and Grok Build.\n\n'
+            'Each comment starts with [from:grok-bot|grok-build] [id:…] [re:…]. '
+            'Watchers find this issue by title (%r), never by a hard-coded number.' % CHANNEL_TITLE)
+    ok, raw = _gh_api(["--method", "POST", "repos/%s/issues" % REPO, "--input", "-"],
+                      input_text=json.dumps({"title": CHANNEL_TITLE, "body": body}))
+    if not ok:
+        return None
+    try:
+        return json.loads(raw).get("number")
+    except ValueError:
+        return None
+
+
+def post_hello(issue):
+    """First grok-build hello on a brand-new Channel issue. Best-effort; never raises."""
+    mid = "g" + secrets.token_hex(3)
+    body = make_body(mid, "-", HELLO_TEXT)
+    _gh_api(["--method", "POST", "repos/%s/issues/%d/comments" % (REPO, issue), "--input", "-"],
+            input_text=json.dumps({"body": body}))
+
+
+def channel_number(create=True):
+    """Resolve the Channel issue number: env override, find by title, or create (+ hello) when create=True.
+    Raises RuntimeError with a safe message when it cannot resolve."""
+    n = find_channel_issue()
+    if n:
+        return n
+    if not create:
+        raise RuntimeError("no open issue titled %r in %s (run setup/watch/send once to create it)" % (CHANNEL_TITLE, REPO))
+    n = create_channel_issue()
+    if not n:
+        raise RuntimeError("could not create the %r issue in %s (check gh auth and repo access)" % (CHANNEL_TITLE, REPO))
+    post_hello(n)
+    out("%s channel ready: %s#%d (%r)" % (TAG, REPO, n, CHANNEL_TITLE))
+    return n
+
+
+
 def classify_http(code, headers, now=None):
     """HTTP status -> exception to raise (or None for success). Pure, so the rules are testable."""
     now = time.time() if now is None else now
@@ -274,11 +360,12 @@ def next_link(headers):
     return None
 
 
-def poll_once(state, token, api=None):
+def poll_once(state, token, api=None, issue=None):
     """One poll. Returns notification lines. 304 (nothing new) is free against the rate limit."""
     api = api or API
+    issue = int(issue if issue is not None else channel_number(create=False))
     url = "%s/repos/%s/issues/%d/comments?per_page=100&since=%s" % (
-        api, REPO, ISSUE, urllib.parse.quote(state.get("since") or iso(now_utc()), safe=""))
+        api, REPO, issue, urllib.parse.quote(state.get("since") or iso(now_utc()), safe=""))
     etag = state.get("etag") if state.get("etag_url") == url else None
     code, headers, data = http_get(url, token, etag)
     err = classify_http(code, headers)
@@ -305,10 +392,10 @@ def poll_once(state, token, api=None):
         err = classify_http(code, headers)
         if err:
             raise err
-    lines = process(state, comments)
+    lines = process(state, comments, issue=issue)
     # the cursor moved: the next poll uses a new URL, so the old ETag no longer applies
     new_url = "%s/repos/%s/issues/%d/comments?per_page=100&since=%s" % (
-        api, REPO, ISSUE, urllib.parse.quote(state.get("since") or "", safe=""))
+        api, REPO, issue, urllib.parse.quote(state.get("since") or "", safe=""))
     state["etag_url"], state["etag"] = (url, new_etag) if new_url == url else (None, None)
     return lines
 
@@ -338,13 +425,19 @@ def cmd_watch(a):
         out("%s link watcher not started: %s" % (TAG, AUTH_HELP)); return 2
     if not token_allowed(API):
         out("%s link watcher not started: AGENT_CITY_COMMS_API must be api.github.com" % TAG); return 2
+    try:
+        issue = channel_number(create=True)
+    except RuntimeError as e:
+        out("%s link watcher not started: %s" % (TAG, e)); return 2
     lock, pid = take_lock("comms-watch.lock")
     if not lock:
         out("%s link watcher already running (pid %s); not starting another." % (TAG, pid or "?")); return 0
     interval = max(a.interval, 0.05)
     state = load_state()
+    state["channel_issue"] = issue
     parent = os.getppid()
     fails, problem, polls = 0, None, 0
+    out("%s link watcher on %s#%d (%r) every %ss" % (TAG, REPO, issue, CHANNEL_TITLE, int(interval)))
     while True:
         if a.iterations and polls >= a.iterations:
             break
@@ -354,7 +447,7 @@ def cmd_watch(a):
         delay = interval
         try:
             before = json.dumps(state, sort_keys=True)
-            lines = poll_once(state, token)
+            lines = poll_once(state, token, issue=issue)
             if problem:
                 out("%s link back online." % TAG); problem = None
             fails = 0
@@ -454,6 +547,9 @@ def parse_setup(text, url=None, key=None, header=None):
             break
     if not found_key:
         m = re.search(r"(?im)^\s*(?:sender[ _-]?key|api[ _-]?key|secret|token|key)\s*[:=]\s*[\"']?([^\s\"']+)", text)
+        if not m:
+            # Mid-line "Key: …" / "token: …" (not query-string ?key= inside the URL).
+            m = re.search(r"(?i)(?:^|[\s,;])(?:sender[ _-]?key|api[ _-]?key|secret|token|key)\s*[:=]\s*[\"']?([^\s\"']+)", text)
         if m and not PLACEHOLDER_RE.match(m.group(1)):
             found_key = m.group(1)
     if template and "{key}" not in template:
@@ -489,8 +585,11 @@ def read_clipboard():
 
 
 def cmd_setup(a):
+    paste = " ".join(getattr(a, "paste", None) or []).strip()
     if a.clipboard:
         text = read_clipboard()
+    elif paste:
+        text = paste
     elif a.url:
         text = ""
     elif not sys.stdin.isatty():
@@ -506,7 +605,17 @@ def cmd_setup(a):
             "AGENT_CITY_WEBHOOK_URL=%s\nAGENT_CITY_WEBHOOK_KEY=%s\nAGENT_CITY_WEBHOOK_HEADER=%s\n"
             % (cfg["url"], cfg["key"], cfg["header"]))
     write_atomic(path("bot-webhook.env"), body, 0o600)
-    out("setup: saved %s (%s). Test: comms.py send ping" % (path("bot-webhook.env"), describe(cfg)))
+    out("setup: saved (%s). Key stored chmod 600; never echoed." % describe(cfg))
+    # Bootstrap the Channel issue so watch/send do not need a hard-coded number.
+    if gh_path() and gh_token():
+        try:
+            n = channel_number(create=True)
+            out("setup: Channel ready at %s#%d (%r)" % (REPO, n, CHANNEL_TITLE))
+        except RuntimeError as e:
+            out("setup: webhook saved; Channel not created yet (%s). watch/send will retry." % e)
+    else:
+        out("setup: webhook saved. Install/sign in gh, then run watch or send to create Channel.")
+    out("setup: test with: python3 comms.py send ping")
     return 0
 
 
@@ -537,10 +646,11 @@ def rate_check(now=None):
     return True, ""
 
 
-def post_comment(body):
+def post_comment(body, issue=None):
     """POST via gh (JSON on stdin, so any text is safe). Returns (ok, url_or_error)."""
     try:
-        r = subprocess.run(["gh", "api", "--method", "POST", "repos/%s/issues/%d/comments" % (REPO, ISSUE), "--input", "-"],
+        n = int(issue if issue is not None else channel_number(create=True))
+        r = subprocess.run(["gh", "api", "--method", "POST", "repos/%s/issues/%d/comments" % (REPO, n), "--input", "-"],
                            input=json.dumps({"body": body}), capture_output=True, text=True, timeout=30)
     except subprocess.TimeoutExpired:
         return False, "gh timed out"
@@ -596,8 +706,12 @@ def cmd_send(a):
     ok, why = rate_check()
     if not ok:
         out("send: not sent: rate limit (%s). Do not retry in a loop." % why); return 3
+    try:
+        issue = channel_number(create=True)
+    except RuntimeError as e:
+        out("send: not sent: %s" % e); return 2
     mid = "g" + secrets.token_hex(3)
-    c_ok, c_info = post_comment(make_body(mid, re_id, text))
+    c_ok, c_info = post_comment(make_body(mid, re_id, text), issue=issue)
     cfg = load_env()
     if cfg:
         w_ok, w_info = post_webhook(cfg, {"id": mid, "re": re_id, "text": text, "from": ME,
@@ -623,12 +737,17 @@ def cmd_status(a):
         rows.append("gh: " + AUTH_HELP)
     else:
         try:
-            r = subprocess.run(["gh", "api", "repos/%s/issues/%d" % (REPO, ISSUE), "--jq", ".number"],
-                               capture_output=True, text=True, timeout=20)
-            rows.append("gh: signed in; thread %s#%d %s" % (REPO, ISSUE, "reachable" if r.returncode == 0 else
-                        "NOT reachable (the gh account needs access to the private repo)"))
+            n = find_channel_issue()
+            if n is None:
+                rows.append("gh: signed in; Channel issue not found yet (watch/send/setup will create it)")
+            else:
+                r = subprocess.run(["gh", "api", "repos/%s/issues/%d" % (REPO, n), "--jq", ".number"],
+                                   capture_output=True, text=True, timeout=20)
+                rows.append("gh: signed in; Channel %s#%d (%r) %s" % (
+                    REPO, n, CHANNEL_TITLE, "reachable" if r.returncode == 0 else
+                    "NOT reachable (the gh account needs access to the private repo)"))
         except (OSError, subprocess.TimeoutExpired):
-            rows.append("gh: signed in; thread check timed out")
+            rows.append("gh: signed in; Channel check timed out")
     cfg = load_env()
     rows.append("webhook: " + (describe(cfg) if cfg else "not configured (comments only; run comms.py setup)"))
     lock, pid = take_lock("comms-watch.lock")
@@ -656,6 +775,7 @@ def main(argv=None):
     s = sub.add_parser("send"); s.add_argument("--re", default="-"); s.add_argument("text", nargs="+")
     u = sub.add_parser("setup"); u.add_argument("--clipboard", action="store_true")
     u.add_argument("--url"); u.add_argument("--key"); u.add_argument("--header")
+    u.add_argument("paste", nargs="*", help="plain text with webhook URL and key (also --url/--key, --clipboard, or stdin)")
     sub.add_parser("status")
     a = p.parse_args(argv)
     if not a.cmd:

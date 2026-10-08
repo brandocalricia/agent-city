@@ -1,5 +1,12 @@
 # Agent City - Changelog
 
+## 2026-10-08 - Channel bootstrap + one publish path
+- Message link is self-bootstrapping on Grok Build: `comms.py` setup/watch/send find the open issue titled Channel by title (create + first hello if missing); nothing hard-codes #1. Setup accepts URL+key as plain text in the prompt (also --clipboard / --url/--key), stores chmod 600, never echoes the key. Session start auto-launches the watcher once bot-webhook.env exists
+- Grok Bot replies by finding the Channel issue by title (noted in AGENTS.md)
+- Newsroom schedule explicit in the session skill and AGENTS.md: full Reporter at 8:49 AM (5-8 stories), light check at 8:49 PM (at most 2, or skip)
+- One publish method only: always the `publish` branch + `[publish]` + GitHub Action (never push straight to main from a session); skill, AGENTS.md, and Action agree
+- Tests updated for Channel resolution and plain-text setup paste
+
 ## 2026-10-08 - Early morning: live site catch-up + prompt linter
 - Fixed: the live site was still on an older version because the last two publishes stopped partway; the UI overhaul, the Morning Brief kiosk, and the Study Hall answer box are now live
 - Publishing now goes through a `publish` branch: files are pushed there in pieces, then a GitHub Action runs the tests and moves the live site to all of them in one commit, so a publish that stops partway can never leave the site half-updated (Quick Council YES 9/10)
