@@ -61,7 +61,7 @@ class Static(unittest.TestCase):
         for old in ("council", "cityhall"):
             self.assertRegex(al, rf"'?{old}'?:\s*'townhall'")
         roles = read("js", "roles.js")
-        self.assertIn("id: 'council', name: 'Council', icon: '⚖️', color: 0xe040fb, building: 'townhall'", roles)
+        self.assertIn("id: 'council', name: 'Council', icon: '\u2696\ufe0f', color: 0xe040fb, building: 'townhall'", roles)
 
     def test_no_building_shares_a_block_or_overlaps_the_hub(self):
         blocks = {}
@@ -145,7 +145,7 @@ class Browser(unittest.TestCase):
     def test_study_hall_answer_box_and_public_morning_brief(self):
         pg = self.page()
         e = "{answer: 'y = -pi^2 x + pi^3', accept: ['y = -pi^2 (x - pi)']}"
-        for given, want in (("y = pi^3 - pi^2*x", "right"), ("-π^2(x-pi)", "right"), ("-pi^2x+pi^3", "right"),
+        for given, want in (("y = pi^3 - pi^2*x", "right"), ("-\u03c0^2(x-pi)", "right"), ("-pi^2x+pi^3", "right"),
                             ("y = pi^2 x", "wrong"), ("", "empty"), ("alert(1)", "wrong")):
             self.assertEqual(pg.evaluate(f"City.checkAnswer({given!r}, {e})"), want, given)
         self.assertEqual(pg.evaluate("City.checkAnswer('42', {})"), "nokey")
