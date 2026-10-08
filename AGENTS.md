@@ -2,7 +2,7 @@
 
 **What this is:** Agent City, a no-build three.js web app that renders a 3D city of the owner's AI assistants and 16 working roles
 (Inspector, Builder, Scout, Courier, Timekeeper, Tutor, Librarian, Prompt Smith, Toolsmith, Critic, Archivist, Council, Auditor, Meter Reader, Optimizer, Reporter).
-The Council (Council Chamber, `js/buildings/council.js`) decides Notice Board items and city decisions with the `council` skill: Quick Council (3 seats) for minor,
+The Council lives in Town Hall (Council) at the center of the city (`js/buildings/townhall.js`; verdict view and old-link redirects in `js/buildings/council.js`) and decides Notice Board items and city decisions with the `council` skill: Quick Council (3 seats) for minor,
 Full Council (14 seats + King + Red Team) for important. YES is implemented right away, NO closes the item with a reason, user-only actions stay on the board.
 The Council reads `IDEALS.md` before every ruling. Log each verdict to activity.json as `{role:'council', action, question, size:'Quick'|'Full', verdict:'YES'|'NO', confidence:1-10, reason, ideals}` (`ideals` = one line on fit, naming any conflict).
 Public on GitHub Pages: https://brandocalricia.github.io/agent-city/ (the repo is PUBLIC). Grown ~3 sessions/day.
@@ -20,7 +20,9 @@ To send Grok Build a suggestion, give an activity.json or finds.json entry a `gb
 
 **Cost agents (evening session, skip when nothing is new):** the Meter Reader adds the session's push size to `costs.json` (`ledger`: bytes read from
 GitHub at the commit, tokens ~ bytes/4); the Optimizer turns ledger and Auditor findings into `costs.json` `savings`, and terminal-setup savings into gb items.
-Both log one activity.json line; the Treasury shows the ledger and savings.
+Each ledger entry also carries `saved_kb`/`saved_tokens` (measured savings, method in `saved_method`); `price` states the $/1M-token basis and source.
+Never delete ledger entries without adding their totals to `archived`: `tools/treasury.py` sums ledger + archived into the Treasury's lifetime totals.
+Both log one activity.json line; the Treasury shows lifetime savings, cost per build, the weekly limit vs plan, the trend, and the biggest savings.
 
 **Newsroom (Reporter, every morning; evenings only a quick check for big breaking news):** reads the latest LLM, AI agent, Grok/xAI and Grok Build
 news (x connector `search_news`/`get_news`/`search_posts_all`, plus WebSearch; primary sources such as the Grok Build changelog first) and appends
@@ -40,7 +42,12 @@ by the global rule) polls every 10 s with ETag/If-None-Match and prints one line
 messages, reply once, never reply to plain acknowledgements; Grok Build's send is capped at 1 per 10 s and 60 per hour. Webhook URL and sender key live
 only in `~/.grok/agent-city/bot-webhook.env` on the owner's Mac (chmod 600), never in any repo or message.
 
-**Tests:** `python3 -m unittest discover -s tests` (stdlib; build_data incl. news, install/update, city_apply, comms). Run before every publish; CI runs it on ubuntu and macOS.
+**Pacing (every session, first):** `python3 tools/pace.py` reads the local, gitignored `budget.json` (latest real usage reading + logged `sessions` and `adhoc`
+entries since) and prints the size for this session (L/M/S/minimal/skip). Size the session from it, and log the session in `budget.json` `sessions` at the end;
+ad-hoc work for the owner goes in `adhoc`. It prints numbers only; never publish budget.json.
+
+**Tests:** `python3 -m unittest discover -s tests` (stdlib; build_data incl. news, install/update, city_apply, comms, pace, treasury, UI static checks;
+the UI browser smoke tests run where Playwright + Chrome exist and skip elsewhere). Run before every publish; CI runs it on ubuntu and macOS.
 After changing anything in `grok-build/`, run `python3 build_data.py` so `grok-build/manifest.txt` (sha256 per installed file) matches, and push the manifest
 in the same commit: a stale manifest makes owners' updaters reject the new files.
 
@@ -51,11 +58,14 @@ in the same commit: a stale manifest makes owners' updaters reject the new files
   then loads the plain scripts listed in `js/manifest.js` in order and calls `City.main()`. Do not convert the city's files to ES modules: they would break `file://`.
 - Everything hangs off the global `City`: helpers in `core.js` (`City.box`, `City.simpleBuilding`, `City.sign`, `City.card`, ...), roles in `roles.js`,
   buildings in `js/buildings/<id>.js` via `City.building({ id, name, icon, block:[i,j] | pos:[x,z], role, sub(), build(g) -> roofY, panel() -> html })`.
-  Doors auto-face the central plaza. Per-frame work: `City.onFrame((dt, t) => ...)`.
-- `data.js` is GENERATED: `window.CITY_DATA = {generatedAt, skills, agents, changelog, finds, activity, totals, routines, ideals, costs, news, gb}`. Never hand-edit.
+  Doors auto-face the central plaza, where Town Hall (Council) stands as the hub (`City.HUB` = its beacon). Per-frame work: `City.onFrame((dt, t) => ...)`.
+- UI: `hud.js` (top bar, search, dashboard and settings views via `City.registerView`, shortcuts, welcome card, toasts; settings in localStorage),
+  `visuals.js` (crosswalks, textures, neon accents, time-of-day bloom, automatic quality), `streaks.js` (`City.streaks.fire(roleId)`: neon trail from the
+  role's building to Town Hall, max 4 at once, off under reduced motion). Panels with 3+ `<h4>` sections get tabs automatically.
+- `data.js` is GENERATED: `window.CITY_DATA = {generatedAt, skills, agents, changelog, finds, activity, totals, routines, ideals, costs, news, treasury, gb}`. Never hand-edit.
 - `private.js` (from `private.json`) is gitignored and only requested on file:// or localhost.
 
-**Deep links:** `#<building id>` (e.g. `#council`, `#market`), `#role=<role id>`, `#overview` open that view (`js/deeplink.js`); use them when linking the owner to something in the city.
+**Deep links:** `#<building id>` (e.g. `#townhall`, `#market`), `#role=<role id>`, `#overview`, `#dashboard`, `#settings` open that view (`js/deeplink.js`); old anchors `#council` and `#cityhall` redirect to `#townhall`. Use them when linking the owner to something in the city.
 
 **Regenerate data:** `python3 build_data.py` (stdlib only). Off the Grok box the agent-data paths don't exist, so skills/agents/routines come out empty.
 
