@@ -1,5 +1,14 @@
 # Agent City - Changelog
 
+## 2026-10-08 - The Council arrives
+- New role: the Council (magenta) decides Notice Board items and city decisions with the council skill; Quick Council (3 seats) for minor, Full Council (14 seats + King + Red Team) for important
+- New building: Council Chamber, a round domed chamber with 14 columns next to City Hall; panel explains how it decides and lists verdicts with YES/NO, size, confidence and reason
+- IDEALS.md: the user's 7 ideals; the Council reads it before every ruling, each verdict notes its fit, and the Council Chamber shows them
+- Library now shows 2 books: agent-city-session and council
+- First council session: #33 YES (9/10) and #34 YES (5/10 after the ideals re-check), both built
+- Study Hall: Tutor problems carry a "Study this topic" link (today: Paul's Notes, Product and Quotient Rule)
+- Notice Board: a one-shot confetti burst when it reaches All clear
+
 ## 2026-10-08 - Notice Board cleanup
 - Librarian: the agent-city-session skill is saved and is the first book in the Library; its proposal is off the Notice Board
 - Toolsmith: adopted Paul's Calc I notes and Python Tutor as clickable links in the Study Hall (Calc I and Intro to CS sections)

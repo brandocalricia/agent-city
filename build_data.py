@@ -8,6 +8,7 @@ Sources:
   - ./finds.json                                (Market scout finds: [{date,title,url,source,why_useful,status?}])
   - ./activity.json                             (role log, append-only: [{date,session,role,action,details,link?,...}])
   - /home/box/agent-data/agents/*/automations/  (saved routines, shown on the Office board)
+  - ./IDEALS.md                                 (the user's ideals; the Council checks every ruling against them)
   - ./private.json (gitignored) -> ./private.js (gitignored): Courier/Timekeeper notes, local copy only
 No data is invented: empty sources stay empty and the city shows an empty state.
 Run:  python3 build_data.py
@@ -48,7 +49,8 @@ def load_skills():
             "id": folder,
             "name": meta.get("name") or folder,
             "description": meta.get("description", ""),
-            "preview": body.strip()[:600],
+            # blockquoted notes (e.g. "> Source: private repo ...") stay out of the public preview
+            "preview": "\n".join(l for l in body.splitlines() if not l.lstrip().startswith(">")).strip()[:600],
             "updated": datetime.datetime.fromtimestamp(os.path.getmtime(path)).strftime("%Y-%m-%d"),
         })
     return skills
@@ -110,6 +112,18 @@ def load_finds():
     return sorted(finds, key=lambda x: x["date"], reverse=True)
 
 
+def load_ideals():
+    """IDEALS.md numbered lines -> [{n, title, text}] (shown in the Council Chamber)."""
+    path = os.path.join(HERE, "IDEALS.md")
+    out = []
+    if os.path.exists(path):
+        for line in open(path, encoding="utf-8"):
+            m = re.match(r"^(\d+)\.\s+\*\*(.+?)\*\*\s*(.*)", line.strip())
+            if m:
+                out.append({"n": int(m.group(1)), "title": m.group(2).rstrip("."), "text": m.group(3)})
+    return out
+
+
 def load_json(name, default):
     try:
         with open(os.path.join(HERE, name), encoding="utf-8") as f:
@@ -165,6 +179,7 @@ def main():
         "finds": load_finds(),
         "activity": load_activity(),
         "routines": load_routines(),
+        "ideals": load_ideals(),
     }
     out = os.path.join(HERE, "data.js")
     with open(out, "w", encoding="utf-8") as f:

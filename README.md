@@ -17,6 +17,7 @@ Live (public): https://brandocalricia.github.io/agent-city/ · Local: double-cli
 | 🛠 Workshop | 🛠 Toolsmith | works only on approved finds |
 | 🧐 Review Board | 🧐 Critic | checks of everyone's output |
 | 🗄 Archive | 🗄 Archivist | Sunday weekly summary |
+| ⚖️ Council Chamber | ⚖️ Council | decides board items and city decisions (council skill), YES/NO verdicts |
 | 🧾 Treasury | 🧾 Auditor | token-saving changes (estimates labeled) |
 | ⚒ Skill Forge, 📊 Stats Tower, 📌 Notice Board | - | skill guide, real counts, what needs you |
 
