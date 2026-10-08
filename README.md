@@ -1,52 +1,45 @@
 # Agent City
 
-A 3D, explorable city in your browser that visualizes your AI assistants and their real work:
-the **Library** holds your saved skills, the **Office** shows work being done, the **Town Hall** keeps the
-agent roster, and the **Market** is where scout agents bring back useful tools they find.
+A 3D city in your browser where your AI assistants and their working roles live and show their real work.
+Live (public): https://brandocalricia.github.io/agent-city/ · Local: double-click `index.html`.
 
-## Open it
-Double-click `index.html` (Chrome, Edge, Firefox, or Safari). No install or server needed.
-It needs an internet connection the first time, because three.js loads from a CDN.
+## What's in the city
+| Building | Role | Shows |
+|---|---|---|
+| 🏛 City Hall | 🔍 Inspector | assistants + role directory; checks the city loads |
+| 🏢 Office | 🔨 Builder | routines board, work log |
+| 🛒 Market | 🧭 Scout | finds (freshest first), approval lines |
+| 📚 Library | 📖 Librarian | saved skills as books; skill proposals |
+| ✉️ Post Office | ✉️ Courier | email flags (**local copy only**) |
+| ⏰ Clock Tower | ⏰ Timekeeper | calendar notes (**local copy only**) |
+| 🎓 Study Hall | 🎓 Tutor | practice problem with hidden solution |
+| ✍️ Prompt Workshop | ✍️ Prompt Smith | prompting tips + copy-paste templates |
+| 🛠 Workshop | 🛠 Toolsmith | works only on approved finds |
+| 🧐 Review Board | 🧐 Critic | checks of everyone's output |
+| 🗄 Archive | 🗄 Archivist | Sunday weekly summary |
+| 🧾 Treasury | 🧾 Auditor | token-saving changes (estimates labeled) |
+| ⚒ Skill Forge, 📊 Stats Tower, 📌 Notice Board | - | skill guide, real counts, what needs you |
 
 ## Controls
-| Action | How |
-|---|---|
-| Orbit / pan / zoom | drag · right-drag · scroll |
-| Open a building, agent, or label | click it |
-| Fly to landmark | `1` Library · `2` Office · `3` Town Hall · `4` Market · `0` overview |
-| Walk mode | `Tab` toggles · `WASD` move · mouse look · `Shift` run · `E` open what you're looking at |
-| Help overlay | `H` |
-| Quality (laptop saver: no bloom/shadows) | `Q` |
-| Close panel | `Esc` |
+Drag/right-drag/scroll to orbit/pan/zoom · click anything to open it · `1`-`4` Library/Office/City Hall/Market · `0` overview ·
+"Go to" menu or minimap click to fly · `Tab` walk mode (`WASD`, mouse, `Shift`, `E`) · `T` time of day · `Q` laptop saver · `H` help · `Esc` close.
 
 ## Files
-- `index.html`: the whole app (three.js via import map, inline module).
-- `data.js`: **generated** by `build_data.py`; defines `window.CITY_DATA`. Loaded with a plain `<script>` so it works on `file://`.
-- `build_data.py`: reads real state on the box: skills in `/home/box/agent-data/workflows/*/SKILL.md`,
-  agent profiles in `/home/box/agent-data/agents/*/profile.json`, `finds.json`, and `CHANGELOG.md`. It never invents data.
-- `finds.json`: Market scout finds (see below).
-- `tools/screenshot.py`: headless render check (playwright + Chrome).
-- `ROADMAP.md`, `CHANGELOG.md`, `AGENTS.md`.
+- `index.html`: small shell + loader. three.js comes from jsDelivr as ES modules; the city's own code is **plain scripts**
+  (`js/manifest.js` lists them) because local ES-module files are blocked on `file://`. Works by double-click and on GitHub Pages.
+- `css/style.css`; `js/core.js` (helpers, renderer), `js/roles.js`, `js/world.js`, `js/daynight.js`, `js/agents.js`, `js/panels.js`, `js/minimap.js`, `js/ui.js`, `js/main.js`
+- `js/buildings/*.js`: one file per building (`City.building({...})`). New building = new file + add its name in `js/manifest.js`.
+- `data.js`: **generated** by `build_data.py` (skills, agent profiles, routines, `finds.json`, `activity.json`, `CHANGELOG.md`).
+- `activity.json`: append-only role log `[{date, session, role, action, details, link?, needs_user?, course?, solution?}]`. Real actions only.
+- `finds.json`: `[{date, title, url, source, why_useful, status: "new"|"approved"}]`. Only things actually found.
+- `private.json` -> `private.js`: **gitignored, never pushed.** Courier/Timekeeper/Auditor notes and private notices; loaded only on the local copy
+  (`file://` or localhost; add `?public` to preview the public view). The public site shows "Private - visible on the local copy only".
+- `tools/screenshot.py`: headless render check.
 
-## finds.json format (Market)
-A JSON array; newest first is not required (build_data.py sorts by date). Entries without a `title` are skipped.
-```json
-[
-  {
-    "date": "2026-10-09",
-    "title": "Example tool name",
-    "url": "https://example.com",
-    "source": "where it was found (site, newsletter, X post...)",
-    "why_useful": "one or two sentences on why it helps Brandon"
-  }
-]
-```
-Starts as `[]`, so the Market shows "Scouts start shopping tomorrow". Only add things that were actually found.
-
-## Rules for future build sessions
-1. **One small increment per session**: take the top unchecked item in `ROADMAP.md` (unless the user asked for something else).
-2. **Keep it working**: it must still open by double-clicking `index.html`; no build step, no `fetch()`.
-3. Run `python3 build_data.py` to regenerate `data.js`.
-4. Take a screenshot: `python3 -m http.server 8765 --bind 127.0.0.1 &` then `python tools/screenshot.py dayN`, look at it, and fix any blank canvas or console errors.
-5. Update `CHANGELOG.md` (dated entry) and tick the item in `ROADMAP.md`, then re-zip / push.
-6. Keep sessions token-light: the user wants plenty left for real work.
+## Rules for future sessions
+1. One small increment per session: the top unchecked `ROADMAP.md` item (unless the user asks otherwise); add 2 new ideas.
+2. Keep it working by double-click and on Pages. No build step, no `fetch()`.
+3. Log each role's real actions in `activity.json`; personal email/calendar details go only in `private.json`.
+4. `python3 build_data.py`, then `python3 -m http.server 8765 --bind 127.0.0.1 &` and `python tools/screenshot.py <name>`; look at the shots.
+5. Update `CHANGELOG.md` + `ROADMAP.md`. Before pushing, grep pushed files for emails, senders, amounts, event names.
+6. Push **only the files you changed** (usually 1-4 small files + data.js) in one commit. Bump `version` in `js/manifest.js` to bust the Pages cache.

@@ -1,41 +1,53 @@
 # Agent City - Roadmap
 
 Prioritized backlog. Each item = one short session. Take the top unchecked item unless the user asks for something else.
+Every Builder session adds at least 2 new ideas so the backlog stays 20+.
 Legend: [x] done · [ ] todo · (W) wow factor · (U) useful
 
-## Day 1 (2026-10-08) - done
-- [x] Ground, road grid, lane markings, sidewalks, trees, street lamps
-- [x] Procedural skyline with lit windows, dusk sky, fog, shadows, bloom
-- [x] Landmarks with floating labels: Library, Office, Town Hall, Market
-- [x] Agent figures from real profiles walking between landmarks; hover/click info
-- [x] Market with 2 scout figures; finds.json -> data.js -> Market panel (empty state)
-- [x] Orbit + WASD walk mode, help overlay, fly-to buttons, quality toggle, info panels
-- [x] build_data.py (skills, agents, changelog, finds), headless screenshot tool
+## Done
+- [x] Day 1 (2026-10-08): streets, skyline, dusk sky, Library, Office, Town Hall, Market, walking assistant, orbit + walk, panels, build_data.py
+- [x] Auditor: split index.html into small plain-script files (css/, js/, js/buildings/)
+- [x] 0. USER REQUEST: role agents with buildings, speech bubbles, history, activity.json, private.json (local only)
+- [x] 1. Library: one clickable book per real skill
+- [x] 2. Office routines board + work board
+- [x] 3. Day/night cycle synced to Denver time (T to preview)
+- [x] 4. Prompt Workshop templates
+- [x] 5. Skill Forge guide
+- [x] 6. Market freshness: freshest first + "new" badges (stale dimming still todo, see below)
+- [x] 7. Minimap with click-to-fly
+- [x] 8. Notice Board in the plaza
+- [x] 9. Stats Tower
 
 ## Backlog (top = next)
-1. [ ] (U) Library shelf per real skill: 3D books you can click to open that skill's description and full SKILL.md preview
-2. [ ] (U) Office routines board: show the agents' saved routines/schedules and a recent work log on the tower wall and in the panel (extend build_data.py)
-3. [ ] (W) Day/night cycle synced to real Denver time (sun position, sky colors, window lights brighter at night)
-4. [ ] (U) Prompt Workshop building: tips and copy-paste templates for prompting agents well (clear goal, context, output format, constraints)
-5. [ ] (U) Skill Forge building: step-by-step guide to turning a repeated task into a saved skill, with an example and a "say this to Grok Bot" button that copies the phrase
-6. [ ] (U) Market "freshness" shelf: finds sorted by age, with new (<3 days) glowing and stale (>30 days) dimmed, plus a "new since last visit" badge (localStorage)
-7. [ ] (W) Minimap in a corner with landmark icons, agent dots, and click-to-fly
-8. [ ] (U) Notice Board in the plaza: pinned reminders and the latest CHANGELOG entry, clickable
-9. [ ] (U) Stats Tower: a tower whose floors light up with counts (skills, agents, finds, sessions, days built)
-10. [ ] (W) Agents follow sidewalks/crosswalks instead of cutting corners; idle animations at landmarks (reading at Library, typing at Office)
-11. [ ] (W) Weather system: rain/snow particles with toggle (snow for Denver winters), wet-road reflections
-12. [ ] (W) Sounds toggle: soft ambient city loop + fountain + click blips (off by default, WebAudio generated, no files)
-13. [ ] (W) Cars driving along roads with headlights (instanced, cheap)
-14. [ ] (U) Search box: type a skill/find/agent name, camera flies there and opens its panel
-15. [ ] (U) "Copy prompt" buttons in panels (e.g. "Use skill X on ...") that copy a ready-to-paste instruction for Grok Bot
-16. [ ] (W) Particle effects: sparkles when a new skill or find appears since last visit (compare to localStorage)
-17. [ ] (U) City timeline in Town Hall: every CHANGELOG entry as a scrollable history with screenshots
-18. [ ] (W) Lights in windows flicker on/off slowly over time; occasional office-tower window patterns
-19. [ ] (U) Agent detail cards: per-agent stats (skills authored, recent tasks) when data is available
-20. [ ] (W) Seasonal decorations driven by date (autumn leaf colors now, snow caps in winter, DU crimson & gold flags on game days)
-21. [ ] (U) Study Hall building for Brandon's classes: quick links/tips per course pulled from saved skills (only real data)
-22. [ ] (W) Photo mode: hide UI, cinematic slow orbit, save PNG
-23. [ ] (U) Mobile/touch controls (virtual joystick, tap to open)
-24. [ ] (W) Water: animated fountain shader + a river/park on the city edge
-25. [ ] (U) Performance pass: frustum-cull labels, LOD for far buildings, FPS counter in laptop-saver mode
-26. [ ] (W) Hot-air balloon/drone tour: one-click guided tour of all landmarks with captions
+1. [ ] (U) Deep links: open a panel from the URL hash (e.g. /agent-city/#market, #role=tutor) so Grok Bot can link you straight to something
+2. [ ] (U) Morning-brief kiosk in the plaza: Courier + Timekeeper notes combined (local copy only)
+3. [ ] (U) Study Hall answer box: type your answer, get a local check before the solution unlocks
+4. [ ] (U) Prompt linter in the Prompt Workshop: paste a prompt, see what's missing (goal, context, done-when, format)
+5. [ ] (U) Review Board checklist view: the Critic's pass/fail checks as icons per role
+6. [ ] (W) Agents follow sidewalks/crosswalks; idle animations by role (reading, typing, hammering)
+7. [ ] (U) Notice Board: dismiss/snooze notices locally (localStorage)
+8. [ ] (W) Weather: rain/snow toggle (snow for Denver winters)
+9. [ ] (U) Search box: type a skill/find/role, fly there and open it
+10. [ ] (U) Market: dim stale finds (>30 days) and tag finds by class/topic with filters
+11. [ ] (W) Sounds toggle: ambient city + fountain + click blips (WebAudio, off by default)
+12. [ ] (W) Cars with headlights on the roads (instanced, cheap)
+13. [ ] (U) Stats Tower: 7-day sparkline of actions per day
+14. [ ] (U) Treasury: per-session cost estimates chart (labeled estimates only)
+15. [ ] (U) Archive timeline: browse weekly summaries and CHANGELOG entries
+16. [ ] (W) Real sunrise/sunset from a solar formula for Denver + moon phase at night
+17. [ ] (U) Candidate role: Sentinel (account-security watch: password resets, new-device sign-ins, new app authorizations; local only)
+18. [ ] (W) Sports field district on the city edge (practice times from calendar, local only)
+19. [ ] (W) Campus district with class-location markers (local only)
+20. [ ] (U) Tutor streak tracker (problems attempted, localStorage)
+21. [ ] (U) Prompt Workshop: save favorite templates (localStorage)
+22. [ ] (W) Skill Forge glows brighter while a Librarian proposal is waiting
+23. [ ] (W) Minimap pulses roles that acted today
+24. [ ] (U) Office: per-session build timeline with screenshots
+25. [ ] (W) Toolsmith workbench animation once a find is approved
+26. [ ] (U) "Copy prompt" buttons on more panels (role-specific asks for Grok Bot)
+27. [ ] (W) Seasonal decorations (snow caps in winter, school-color flags on game days)
+28. [ ] (W) Photo mode: hide UI, slow cinematic orbit, save PNG
+29. [ ] (U) Mobile/touch controls (virtual joystick, tap to open)
+30. [ ] (U) Performance pass: label culling, LOD for far buildings, FPS counter in saver mode
+31. [ ] (W) Drone tour: one-click guided tour of all landmarks with captions
+32. [ ] (W) Light ambient pedestrians for atmosphere only (purely visual, cheap)
