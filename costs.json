@@ -1,5 +1,5 @@
 {
- "method": "Push content = bytes of every file in the session's commit, read from GitHub at that commit. Token figures are estimates (bytes / 4).",
+ "method": "Push content = bytes of every file in the session's commits, read from GitHub at each commit (KB = 1024 bytes). Token figures are estimates (bytes / 4).",
  "ledger": [
   {
    "date": "2026-10-08",
@@ -8,7 +8,9 @@
    "files_pushed": 13,
    "kb_pushed": 49.2,
    "est_tokens": 12600,
-   "top": "data.js 13.2 KB, activity.json 7.5 KB, build_data.py 6.8 KB"
+   "top": "data.js 13.2 KB, activity.json 7.5 KB, build_data.py 6.8 KB",
+   "saved_kb": 75.6,
+   "saved_tokens": 19400
   },
   {
    "date": "2026-10-08",
@@ -17,7 +19,9 @@
    "files_pushed": 12,
    "kb_pushed": 63.3,
    "est_tokens": 16200,
-   "top": "data.js 17.5 KB, activity.json 9.1 KB, build_data.py 7.6 KB"
+   "top": "data.js 17.5 KB, activity.json 9.1 KB, build_data.py 7.6 KB",
+   "saved_kb": 79.7,
+   "saved_tokens": 20400
   },
   {
    "date": "2026-10-08",
@@ -26,33 +30,71 @@
    "files_pushed": 17,
    "kb_pushed": 81.3,
    "est_tokens": 20800,
-   "top": "data.js 20.8 KB, build_data.py 10.9 KB, activity.json 10.7 KB"
+   "top": "data.js 20.8 KB, build_data.py 10.9 KB, activity.json 10.7 KB",
+   "saved_kb": 90.4,
+   "saved_tokens": 23100
   },
   {
    "date": "2026-10-08",
    "session": "Cost agents + bulletproofing",
-   "commit": "this session (measured before push)",
-   "files_pushed": 29,
-   "kb_pushed": 195.1,
-   "est_tokens": 49900,
-   "top": "data.js 30.3 KB, city_apply.py 26.2 KB, build_data.py 16.7 KB",
-   "note": "One-off: new test suite and helper (~half the bytes). data.js is now capped."
+   "commit": "c2b6f72, b1e7f6f, cfe9193",
+   "files_pushed": 30,
+   "kb_pushed": 225.0,
+   "est_tokens": 57600,
+   "top": "data.js 60.0 KB, grok-build/city_apply.py 26.2 KB, build_data.py 16.7 KB",
+   "saved_kb": 76.3,
+   "saved_tokens": 19500,
+   "note": "Re-measured at its 3 commits (first entry was 195.1 KB, measured before push). One-off: new test suite and helper. data.js is now capped."
+  },
+  {
+   "date": "2026-10-08",
+   "session": "Overnight: deep links",
+   "commit": "af29502",
+   "files_pushed": 3,
+   "kb_pushed": 8.1,
+   "est_tokens": 2100,
+   "top": "ROADMAP.md 5.8 KB, js/deeplink.js 1.7 KB, js/manifest.js 0.6 KB",
+   "saved_kb": 99.6,
+   "saved_tokens": 25500
+  },
+  {
+   "date": "2026-10-08",
+   "session": "Message link + Newsroom",
+   "commit": "18765a2 .. 4d1031d (12 commits)",
+   "files_pushed": 35,
+   "kb_pushed": 306.9,
+   "est_tokens": 78600,
+   "top": "data.js 73.4 KB, activity.json 35.3 KB, grok-build/comms/comms.py 27.5 KB",
+   "saved_kb": 79.8,
+   "saved_tokens": 20400,
+   "note": "Split into 12 commits because large multi-file pushes were truncated; data.js went up 4 times (73 KB of the total)."
   }
  ],
  "savings": [
   {
    "date": "2026-10-08",
+   "by": "auditor",
+   "change": "Split the single 50 KB index.html into small css/js files, so a session pushes only the files it changed",
+   "status": "implemented",
+   "tokens_saved": 128300,
+   "est_saving": "about 20k tokens per session that changes the front end (est.)",
+   "evidence": "Measured over 6 sessions: whole front end 87-103 KB vs 2-23 KB actually pushed",
+   "link": "https://github.com/brandocalricia/agent-city/commit/cfd33e5"
+  },
+  {
+   "date": "2026-10-08",
    "by": "optimizer",
    "change": "data.js keeps the newest 150 actions plus each role's newest 12; totals stay exact",
    "status": "implemented",
-   "est_saving": "data.js stops growing with the log (it grew ~3.7 KB per session)",
-   "evidence": "data.js was the largest file in all 3 measured pushes: 13.2 -> 17.5 -> 20.8 KB"
+   "est_saving": "0 so far: the cap only starts saving once the log passes 150 actions (38 now). After that, each extra action stays out of data.js (about 0.5 KB each at today's average, est.) on every data.js push",
+   "evidence": "data.js was the largest file in all 3 measured pushes: 13.2 -> 17.5 -> 20.8 KB",
+   "tokens_saved": 0
   },
   {
    "date": "2026-10-08",
    "by": "optimizer",
    "change": "Move new generators out of build_data.py into small modules so routine sessions stop re-pushing it",
-   "status": "proposed",
+   "status": "started: Treasury numbers moved to tools/treasury.py",
    "est_saving": "~2-3k tokens per session that would touch it (est.)",
    "evidence": "build_data.py was pushed in 3 of 3 sessions (6.8-10.9 KB each)"
   },
@@ -64,5 +106,18 @@
    "est_saving": "depends on his sessions; not measured",
    "evidence": "Context from whole-file reads is the main avoidable input cost in coding sessions"
   }
- ]
+ ],
+ "saved_method": "Split saving (estimate): before the Catch-up run the whole app was one index.html, so any front-end change re-pushed all of it. Per session: size of the whole front end (index.html + css + js) at that session's last front-end commit, minus the front-end bytes actually pushed; 0 when no front-end file changed.",
+ "price": {
+  "usd_per_mtok": 6.0,
+  "basis": "xAI API list price for grok-4.7 output tokens: $6.00 per 1M (docs.x.ai/developers/pricing, checked 2026-10-08). Pushed file content is written by the agent, so it is priced as output. The owner pays a flat plan, so dollar figures are API-equivalent estimates, not money charged.",
+  "source": "https://docs.x.ai/developers/pricing"
+ },
+ "archived": {
+  "note": "Totals of ledger entries removed to keep costs.json small; build_data.py adds them to the lifetime totals.",
+  "sessions": 0,
+  "kb_pushed": 0,
+  "est_tokens": 0,
+  "saved_tokens": 0
+ }
 }

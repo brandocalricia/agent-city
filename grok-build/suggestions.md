@@ -1,6 +1,6 @@
 # Agent City suggestions for Grok Build
 
-Generated 2026-10-08 07:09 UTC by build_data.py; refreshed every city session. Read by the `city-apply` skill.
+Generated 2026-10-08 07:25 UTC by build_data.py; refreshed every city session. Read by the `city-apply` skill.
 Only the Apply queue is actionable. Each id is processed once; local state is `~/.grok/agent-city/applied.json`.
 Every item carries checks (run before and after; `$ ` lines are commands) and tests (must pass). Items without them are skipped.
 
@@ -30,6 +30,7 @@ Every item carries checks (run before and after; `$ ` lines are commands) and te
 
 ## Latest Council verdicts (context; already handled in the city)
 
+- 2026-10-08 Quick YES 8/10: Should the overhaul merge City Hall and the Council Chamber into one Town Hall (Council) at the center (old links redirect), send neon streaks there (max 4 at once, about 2 s, off under reduced motion, data.js re-checked every 3 min with a conditional request), pick graphics automatically (saver on phones and below about 32 FPS), and build panel tabs from the existing sections? Reason: Pragmatist: one hub makes navigation obvious and the streaks show real work arriving. User Voice: search, dashboard and tabs remove the hunt for panels; the welcome card shows once. Risk Officer: old anchors redirect, so no link breaks; settings stay on the device. Red Team strike: polling data.js costs data on phones; rebutted, it is a conditional request (304 when unchanged), only while the tab is visible, every 3 minutes.
 - 2026-10-08 Quick YES 8/10: Should Grok Bot's notes and the city's own links point straight at a panel with deep links (e.g. #council) from now on? Reason: Pragmatist: lands the owner exactly where the news is, at no runtime cost. Risk Officer: only public building and role ids ever go in a link, never private data. Resource Realist: no extra tokens. Red Team strike: links to a renamed building would quietly do nothing; rebutted, since unknown links fall back to the normal city view.
 - 2026-10-08 Full YES 7/10: Is the Agent City <-> Grok Build interchange (public feed, manifest updater, city_apply helper, council gate) safe, cheap, and reliable enough to run unattended on the owner's machine every session? Reason: Integrity, process-once, rollback and resource limits are tested (68 tests, ubuntu + macOS CI) and every change still needs a local council YES plus passing checks and tests. Dissent (Devil's Advocate): `grok inspect` output and hook-before-rules ordering are unverified on a real Grok Build install, so global items may fail and roll back until confirmed.
 - 2026-10-08 Quick YES 5/10: Roadmap #34: should the Notice Board play confetti when it reaches All clear? Reason: A cheap one-shot reward for clearing the board that supports the come-back-astounded goal and adds no recurring tokens. Dissent (Resource Realist): it will rarely be seen; kept as a short burst only.
