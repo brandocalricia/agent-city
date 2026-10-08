@@ -52,7 +52,7 @@ const setStatus = (w, s) => { if (w.status === s) return; w.status = s; w.tag.el
 C.roleChars = C.ROLES.map((r, k) => {
   const L = LM[r.building]; if (!L) return null;
   const side = new THREE.Vector3(L.dir.z, 0, -L.dir.x);
-  const home = L.center.clone().addScaledVector(L.dir, 15.6).addScaledVector(side, r.building === 'library' ? 4 : -4.5).setY(BASE);
+  const home = L.center.clone().addScaledVector(L.dir, 15.6).addScaledVector(side, (r.building === 'library' ? 4 : -4.5) + 3 * C.ROLES.slice(0, k).filter(o => o.building === r.building).length).setY(BASE);
   const col = new THREE.Color(r.color);
   const fig = C.makeFigure(col.clone().multiplyScalar(0.45).getHex(), r.color, 1.3);
   fig.position.copy(home); fig.rotation.y = Math.atan2(L.dir.x, L.dir.z);

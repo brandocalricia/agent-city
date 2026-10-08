@@ -27,8 +27,8 @@ City.stats = () => {
     { k: 'skills', label: '📚 Saved skills', v: D.skills.length, max: 10 },
     { k: 'roles', label: '🧑‍🏭 Roles that have worked', v: City.ROLES.filter(r => act.some(a => a.role === r.id)).length, max: City.ROLES.length },
     { k: 'finds', label: '🛒 Market finds', v: D.finds.length, max: 20 },
-    { k: 'actions', label: '📝 Logged actions', v: act.length, max: 60 },
-    { k: 'sessions', label: '🔁 Work sessions', v: new Set(act.map(a => a.session).filter(Boolean)).size, max: 30 },
+    { k: 'actions', label: '📝 Logged actions', v: (D.totals && D.totals.actions) || act.length, max: 60 },
+    { k: 'sessions', label: '🔁 Work sessions', v: (D.totals && D.totals.sessions) || new Set(act.map(a => a.session).filter(Boolean)).size, max: 30 },
     { k: 'days', label: '🗓 Days built', v: new Set(D.changelog.map(e => (e.title.match(/\d{4}-\d{2}-\d{2}/) || [])[0]).filter(Boolean)).size, max: 30 },
   ];
 };

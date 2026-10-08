@@ -2,60 +2,77 @@
 # Agent City for Grok Build: one-command installer (macOS and Linux, bash 3.2+).
 #   curl -fsSL https://raw.githubusercontent.com/brandocalricia/agent-city/main/grok-build/install.sh | bash
 # Installs into ~/.grok (or $GROK_HOME):
-#   skills/city-council/SKILL.md, skills/city-apply/SKILL.md, rules/40-agent-city.md,
-#   hooks/agent-city.json (SessionStart -> agent-city/update.sh), agent-city/ (feed, ideals, prompts, state).
-# Idempotent. Anything it would overwrite is copied to ~/.grok/agent-city/backup/<time>/ first.
-# Does not touch config.toml, other rules, other skills, or other hooks.
-# Uninstall: same command with "bash -s -- --uninstall" (keeps applied.json and backups).
-set -eu
-RAW="${AGENT_CITY_RAW:-https://raw.githubusercontent.com/brandocalricia/agent-city/main}"
-G="${GROK_HOME:-$HOME/.grok}"
-D="$G/agent-city"
-BK="$D/backup/$(date +%Y%m%d-%H%M%S)"
-command -v curl >/dev/null || { echo "agent-city: curl is required" >&2; exit 1; }
+#   rules/40-agent-city.md, skills/city-council, skills/city-apply, hooks/agent-city.json (SessionStart),
+#   agent-city/ (update.sh, city_apply.py, suggestions.md, IDEALS.md, prompts.md, pending.txt, applied.json).
+# Every file is verified against grok-build/manifest.txt (sha256) before it replaces anything.
+# Idempotent. Files that would change are copied to ~/.grok/agent-city/backup/<time>/ first; a file at one of
+# these paths that is not Agent City's is backed up and then replaced. config.toml and other rules, skills,
+# and hooks are never touched. Uninstall: ... | bash -s -- --uninstall (keeps applied.json/log and backups).
+# Everything runs inside main, so a truncated download executes nothing.
+main() {
+  set -eu
+  RAW="${AGENT_CITY_RAW:-https://raw.githubusercontent.com/brandocalricia/agent-city/main}"
+  G="${GROK_HOME:-$HOME/.grok}"
+  D="$G/agent-city"
+  BK="$D/backup/$(date +%Y%m%d-%H%M%S)"
+  command -v curl >/dev/null || { echo "agent-city: curl is required" >&2; return 1; }
+  FILES="rules/40-agent-city.md skills/city-council/SKILL.md skills/city-apply/SKILL.md hooks/agent-city.json agent-city/update.sh agent-city/city_apply.py"
 
-OURS="$G/rules/40-agent-city.md $G/skills/city-council/SKILL.md $G/skills/city-apply/SKILL.md $G/hooks/agent-city.json $D/update.sh"
+  if [ "${1:-}" = "--uninstall" ]; then
+    for f in $FILES; do
+      if [ -e "$G/$f" ]; then mkdir -p "$BK"; cp "$G/$f" "$BK/$(echo "$f" | sed 's|/|__|g')"; rm -f "$G/$f"; fi
+    done
+    rmdir "$G/skills/city-council" "$G/skills/city-apply" 2>/dev/null || true
+    printf '0\nrepos: \n' > "$D/pending.txt" 2>/dev/null || true
+    echo "agent-city: removed the rule, skills, hook, and scripts (state kept in $D). Restart Grok."
+    return 0
+  fi
 
-if [ "${1:-}" = "--uninstall" ]; then
-  for f in $OURS; do [ -e "$f" ] && { mkdir -p "$BK"; cp "$f" "$BK/$(echo "$f" | sed "s|^$G/||; s|/|__|g")"; rm -f "$f"; }; done
-  rmdir "$G/skills/city-council" "$G/skills/city-apply" 2>/dev/null || true
-  echo "agent-city: removed the rule, skills, hook, and updater (backup in $BK; state kept in $D). Restart Grok."
-  exit 0
-fi
+  mkdir -p "$D"
+  tmpd=$(mktemp -d "${TMPDIR:-/tmp}/agent-city.XXXXXX")
+  trap 'rm -rf "$tmpd"' EXIT
+  curl -fsS --connect-timeout 5 --max-time 20 "$RAW/grok-build/manifest.txt" -o "$tmpd/manifest.txt" \
+    || { echo "agent-city: could not download the manifest (offline?). Nothing changed." >&2; return 1; }
+  [ "$(tail -n 1 "$tmpd/manifest.txt")" = "end" ] || { echo "agent-city: incomplete manifest. Nothing changed." >&2; return 1; }
 
-BACKED=0
-mkdir -p "$D" "$G/rules" "$G/hooks" "$G/skills/city-council" "$G/skills/city-apply"
+  # 1. download and verify everything first; touch nothing until all files check out
+  for pair in "rules/40-agent-city.md|grok-build/rules/40-agent-city.md" "skills/city-council/SKILL.md|grok-build/skills/city-council/SKILL.md" \
+              "skills/city-apply/SKILL.md|grok-build/skills/city-apply/SKILL.md" "hooks/agent-city.json|grok-build/hooks/agent-city.json" \
+              "agent-city/update.sh|grok-build/update.sh" "agent-city/city_apply.py|grok-build/city_apply.py"; do
+    dst=${pair%%|*}; src=${pair#*|}
+    want=$(awk -v p="$src" '$2 == p { print $1 }' "$tmpd/manifest.txt")
+    out="$tmpd/$(echo "$dst" | sed 's|/|__|g')"
+    curl -fsS --connect-timeout 5 --max-time 20 "$RAW/$src" -o "$out" || { echo "agent-city: download failed: $src. Nothing changed." >&2; return 1; }
+    [ -n "$want" ] && [ "$(sha "$out")" = "$want" ] || { echo "agent-city: checksum mismatch: $src. Nothing changed." >&2; return 1; }
+  done
 
-backup() { # backup <dest> <marker> <repo path>: copy aside if it would change; move it away if it is not ours
-  [ -e "$1" ] || return 0
-  if curl -fsSL --max-time 20 "$RAW/$3" 2>/dev/null | cmp -s - "$1"; then return 0; fi
-  mkdir -p "$BK"; BACKED=1; cp "$1" "$BK/$(echo "$1" | sed "s|^$G/||; s|/|__|g")"
-  grep -q "$2" "$1" || rm -f "$1"
+  # 2. back up anything that would change, then replace atomically
+  backed=0
+  for f in $FILES; do
+    new="$tmpd/$(echo "$f" | sed 's|/|__|g')"
+    if [ -e "$G/$f" ] && ! cmp -s "$new" "$G/$f"; then
+      mkdir -p "$BK"; cp "$G/$f" "$BK/$(echo "$f" | sed 's|/|__|g')"; backed=1
+    fi
+    mkdir -p "$(dirname "$G/$f")"
+    cp "$new" "$G/$f.tmp.$$" && mv -f "$G/$f.tmp.$$" "$G/$f"
+  done
+  chmod +x "$D/update.sh" "$D/city_apply.py"
+  [ -f "$D/applied.json" ] || echo '{}' > "$D/applied.json"
+
+  # 3. feed, ideals, prompts, and pending.txt through the normal updater
+  AGENT_CITY_RAW="$RAW" GROK_HOME="$G" bash "$D/update.sh" --force
+
+  for f in $FILES; do [ -s "$G/$f" ] || { echo "agent-city: missing $G/$f" >&2; return 1; }; done
+  for f in suggestions.md IDEALS.md prompts.md pending.txt; do [ -s "$D/$f" ] || { echo "agent-city: missing $D/$f (feed download failed; it retries next session)" >&2; }; done
+  echo "agent-city: installed into $G ($(head -n 1 "$D/pending.txt" 2>/dev/null || echo 0) suggestion(s) pending)."
+  [ $backed = 1 ] && echo "agent-city: previous versions backed up in $BK"
+  command -v python3 >/dev/null 2>&1 || echo "agent-city: python3 not found; city-apply needs it (suggestions will wait)."
+  echo "agent-city: restart Grok, then run 'grok inspect' and look for 40-agent-city.md, city-council, city-apply, and the agent-city hook."
+  return 0
 }
 
-backup "$G/rules/40-agent-city.md" "Agent City" grok-build/rules/40-agent-city.md
-backup "$G/skills/city-council/SKILL.md" "name: city-council" grok-build/skills/city-council/SKILL.md
-backup "$G/skills/city-apply/SKILL.md" "name: city-apply" grok-build/skills/city-apply/SKILL.md
-backup "$D/update.sh" "Agent City -> Grok Build updater" grok-build/update.sh
-backup "$G/hooks/agent-city.json" "agent-city/update.sh" grok-build/hooks/agent-city.json
+sha() {
+  if command -v sha256sum >/dev/null 2>&1; then sha256sum "$1" | cut -d' ' -f1; else shasum -a 256 "$1" | cut -d' ' -f1; fi
+}
 
-tmp="$D/update.sh.tmp.$$"
-curl -fsSL --max-time 20 "$RAW/grok-build/update.sh" -o "$tmp"
-grep -q "Agent City -> Grok Build updater" "$tmp" || { rm -f "$tmp"; echo "agent-city: download failed" >&2; exit 1; }
-mv -f "$tmp" "$D/update.sh"; chmod +x "$D/update.sh"
-
-tmp="$G/hooks/agent-city.json.tmp.$$"
-curl -fsSL --max-time 20 "$RAW/grok-build/hooks/agent-city.json" -o "$tmp"
-grep -q "agent-city/update.sh" "$tmp" || { rm -f "$tmp"; echo "agent-city: download failed" >&2; exit 1; }
-mv -f "$tmp" "$G/hooks/agent-city.json"
-
-AGENT_CITY_RAW="$RAW" GROK_HOME="$G" "$D/update.sh" --force
-
-ok=1
-for f in $OURS "$D/suggestions.md" "$D/IDEALS.md" "$D/prompts.md" "$D/applied.json" "$D/pending.txt"; do
-  [ -s "$f" ] || { echo "agent-city: missing $f" >&2; ok=0; }
-done
-[ $ok = 1 ] || exit 1
-echo "agent-city: installed into $G ($(head -n 1 "$D/pending.txt") suggestion(s) pending)."
-[ $BACKED = 1 ] && echo "agent-city: previous files backed up in $BK"
-echo "agent-city: restart Grok, then run 'grok inspect' and look for 40-agent-city.md, city-council, city-apply, and the agent-city hook."
+main "$@"

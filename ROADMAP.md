@@ -22,6 +22,7 @@ Legend: [x] done · [ ] todo · (W) wow factor · (U) useful
 - [x] 33. (Council YES 9/10) Tutor problems link to the matching study resource
 - [x] 34. (Council YES 5/10) Notice Board confetti on All clear
 - [x] USER REQUEST: Grok Build link (grok-build/: city-council, city-apply, prompts, suggestions feed, installer + SessionStart hook)
+- [x] 14. Treasury cost chart: Meter Reader's ledger bars + Optimizer savings (USER REQUEST: cost agents + bulletproof Grok Build link, tests + CI)
 
 ## Backlog (top = next)
 1. [ ] (U) Deep links: open a panel from the URL hash (e.g. /agent-city/#market, #role=tutor) so Grok Bot can link you straight to something
@@ -37,7 +38,6 @@ Legend: [x] done · [ ] todo · (W) wow factor · (U) useful
 11. [ ] (W) Sounds toggle: ambient city + fountain + click blips (WebAudio, off by default)
 12. [ ] (W) Cars with headlights on the roads (instanced, cheap)
 13. [ ] (U) Stats Tower: 7-day sparkline of actions per day
-14. [ ] (U) Treasury: per-session cost estimates chart (labeled estimates only)
 15. [ ] (U) Archive timeline: browse weekly summaries and CHANGELOG entries
 16. [ ] (W) Real sunrise/sunset from a solar formula for Denver + moon phase at night
 17. [ ] (U) Candidate role: Sentinel (account-security watch: password resets, new-device sign-ins, new app authorizations; local only)
@@ -60,3 +60,5 @@ Legend: [x] done · [ ] todo · (W) wow factor · (U) useful
 36. [ ] (W) Council Chamber glows green or red for a few seconds after a fresh YES or NO verdict
 37. [ ] (U) Grok Build Pier: a harbor building on the city edge for the Grok Build feed (queue, ids, which roles sent them); later, applied/declined counts if the owner opts into publishing a summary
 38. [ ] (U) Prompt linter as a Grok Build skill (/prompt-lint): checks a prompt for goal, context, done-when, and output before work starts; shared rules with roadmap #4
+39. [ ] (U) Archive rotation: move activity.json lines and CHANGELOG entries older than 30 days into archive/ files so every session reads and pushes less
+40. [ ] (U) Grok Build cost log: the helper appends tokens/time per applied item to a local file; the owner can opt in to sharing totals with the Meter Reader

@@ -9,15 +9,29 @@ Sources:
   - ./activity.json                             (role log, append-only: [{date,session,role,action,details,link?,...}])
   - /home/box/agent-data/agents/*/automations/  (saved routines, shown on the Office board)
   - ./IDEALS.md                                 (the user's ideals; the Council checks every ruling against them)
-  - activity.json / finds.json entries with a "gb" field  -> grok-build/suggestions.md (Grok Build feed)
+  - activity.json / finds.json entries with a "gb" field  -> grok-build/suggestions.md (Grok Build feed, validated:
+    a malformed gb entry stops the build so the session cannot publish) + grok-build/manifest.txt (sha256 per file)
+  - ./costs.json                                (Meter Reader ledger + Optimizer savings, shown in the Treasury)
   - ./private.json (gitignored) -> ./private.js (gitignored): Courier/Timekeeper notes, local copy only
 No data is invented: empty sources stay empty and the city shows an empty state.
 Run:  python3 build_data.py
 """
-import json, os, re, glob, datetime, hashlib
+import json, os, re, glob, datetime, hashlib, sys
 
 ROOT = "/home/box/agent-data"
 HERE = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, os.path.join(HERE, "grok-build"))
+from city_apply import command_problem, PLACEHOLDERS  # one command allowlist for both ends
+
+GB_TARGET_RE = re.compile(r"^(global|repo:[A-Za-z0-9._-]+)$")
+GB_KEEP_DAYS = 60            # Apply-queue items older than this drop off the feed
+GB_MAX_PER_DAY = 3           # at most 3 new Grok Build items per day: each one costs the owner a council run
+DATA_ACTIVITY_CAP = 150      # data.js keeps the newest 150 actions + each role's newest 12 (Optimizer, 2026-10-08)
+DATA_ROLE_KEEP = 12
+# files Grok Build's updater may install; manifest.txt carries their sha256 (order = update order)
+GB_MANIFEST = ["grok-build/suggestions.md", "grok-build/prompts.md", "IDEALS.md", "grok-build/skills/city-council/SKILL.md",
+               "grok-build/skills/city-apply/SKILL.md", "grok-build/rules/40-agent-city.md", "grok-build/hooks/agent-city.json",
+               "grok-build/city_apply.py", "grok-build/update.sh"]
 
 
 def parse_frontmatter(text):
@@ -157,24 +171,77 @@ def load_routines():
     return out
 
 
-def gb_items(activity, finds):
-    """Entries with a gb field {change, target, size?, why?} become Grok Build Apply-queue items (stable ids)."""
+def validate_gb(g):
+    """Schema for a gb entry. Returns a list of problems ([] = valid). Mirrors city_apply.item_problems."""
+    if not isinstance(g, dict):
+        return ["gb must be an object"]
+    p = []
+    known = {"change", "target", "size", "why", "checks", "tests"}
+    p += [f"unknown key '{k}'" for k in g if k not in known]
+    strs = lambda v: isinstance(v, list) and all(isinstance(x, str) and x.strip() and "\n" not in x for x in v)
+    if not isinstance(g.get("change"), str) or len(g["change"].strip()) < 20 or "\n" in g["change"]:
+        p.append("change: one line, at least 20 characters")
+    if not isinstance(g.get("target"), str) or not GB_TARGET_RE.match(g["target"]):
+        p.append("target: 'global' or 'repo:<folder name>'")
+    if g.get("size") not in ("Quick", "Full"):
+        p.append("size: 'Quick' or 'Full'")
+    if not isinstance(g.get("why"), str) or not g["why"].strip() or "\n" in g["why"]:
+        p.append("why: one non-empty line")
+    ch, ts = g.get("checks"), g.get("tests")
+    if not strs(ch) or len(ch) < 2 or not any(c.startswith("$ ") for c in ch):
+        p.append("checks: list of >= 2 one-line strings, at least one '$ ' command (wiring checks run before and after)")
+    if not strs(ts) or not 1 <= len(ts) <= 2 or not any(t.startswith("$ ") for t in ts):
+        p.append("tests: list of 1-2 one-line strings, at least one '$ ' command that proves the change")
+    for c in (ch if strs(ch) else []) + (ts if strs(ts) else []):
+        if re.search(r"AC-[0-9a-f]{8}", c):
+            p.append(f"'{c}': use {{id}}, not a literal id")
+        if c.startswith("$ "):
+            bad = [t for t in re.findall(r"\{[a-z_]+\}", c) if t not in PLACEHOLDERS]
+            if bad:
+                p.append(f"'{c}': unknown placeholder {bad[0]} (allowed: {', '.join(PLACEHOLDERS)})")
+            err = command_problem(c[2:])
+            if err:
+                p.append(f"'{c}': {err}")
+    return p
+
+
+def gb_entries():
+    """(source label, entry) for every activity/finds entry that has a gb field, oldest first."""
     out = []
-    for src, x in [("activity", a) for a in reversed(activity)] + [("find", f) for f in load_json("finds.json", [])]:
-        g = x.get("gb") if isinstance(x, dict) else None
-        if not isinstance(g, dict) or not g.get("change"):
+    for i, x in enumerate(load_json("activity.json", [])):
+        if isinstance(x, dict) and "gb" in x:
+            out.append((f"activity.json #{i} ({x.get('role', '?')}: {x.get('action', '')[:40]})", x))
+    for i, x in enumerate(load_json("finds.json", [])):
+        if isinstance(x, dict) and "gb" in x:
+            out.append((f"finds.json #{i} ({x.get('title', '')[:40]})", x))
+    return out
+
+
+def gb_errors():
+    errs = [f"{src}: {e}" for src, x in gb_entries() for e in validate_gb(x["gb"])]
+    per_day = {}
+    for src, x in gb_entries():
+        per_day[x.get("date", "")] = per_day.get(x.get("date", ""), 0) + 1
+    errs += [f"{d or 'undated'}: {n} gb items (max {GB_MAX_PER_DAY} per day)" for d, n in sorted(per_day.items()) if n > GB_MAX_PER_DAY]
+    return errs
+
+
+def gb_items(today=None):
+    """Valid gb entries -> Apply-queue items. id = AC- + sha1(change)[:8]: stable across edits of anything but the change."""
+    today = today or datetime.date.today()
+    cutoff = (today - datetime.timedelta(days=GB_KEEP_DAYS)).isoformat()
+    out, seen = [], set()
+    for src, x in sorted(gb_entries(), key=lambda e: e[1].get("date", "")):
+        g = x["gb"]
+        if validate_gb(g) or x.get("date", "") < cutoff:
             continue
-        out.append({
-            "id": "AC-" + hashlib.sha1(g["change"].encode("utf-8")).hexdigest()[:8],
-            "date": x.get("date", ""), "from": (x.get("role") or "scout") if src == "activity" else "scout",
-            "change": g["change"], "target": g.get("target", "any repo"), "size": g.get("size", "Quick"),
-            "why": g.get("why") or x.get("action") or x.get("title", ""),
-        })
-    seen, uniq = set(), []
-    for it in sorted(out, key=lambda i: i["date"]):
-        if it["id"] not in seen:
-            seen.add(it["id"]); uniq.append(it)
-    return uniq
+        iid = "AC-" + hashlib.sha1(g["change"].strip().encode("utf-8")).hexdigest()[:8]
+        if iid in seen:
+            continue
+        seen.add(iid)
+        out.append({"id": iid, "date": x.get("date", ""), "from": x.get("role") or "scout", "change": g["change"].strip(),
+                    "target": g["target"], "size": g["size"], "why": g["why"].strip(), "checks": g["checks"], "tests": g["tests"]})
+    return out
 
 
 def next_steps(n=5):
@@ -191,11 +258,13 @@ def write_gb_suggestions(activity, items, generated):
     """grok-build/suggestions.md: the feed Grok Build's city-apply skill reads (refreshed every session)."""
     L = ["# Agent City suggestions for Grok Build", "",
          f"Generated {generated} by build_data.py; refreshed every city session. Read by the `city-apply` skill.",
-         "Only the Apply queue is actionable. Each id is processed once; local state is `~/.grok/agent-city/applied.json`.", "",
+         "Only the Apply queue is actionable. Each id is processed once; local state is `~/.grok/agent-city/applied.json`.",
+         "Every item carries checks (run before and after; `$ ` lines are commands) and tests (must pass). Items without them are skipped.", "",
          "## Apply queue", ""]
     for it in items:
         L += [f"- **{it['id']}** | size hint: {it['size']} | target: {it['target']} | from: {it['from']}, {it['date']}",
               f"  - change: {it['change']}", f"  - why: {it['why']}"]
+        L += [f"  - check: {c}" for c in it["checks"]] + [f"  - test: {t}" for t in it["tests"]]
     if not items:
         L.append("(empty)")
     L += ["", "## Latest Council verdicts (context; already handled in the city)", ""]
@@ -209,6 +278,36 @@ def write_gb_suggestions(activity, items, generated):
     os.makedirs(os.path.join(HERE, "grok-build"), exist_ok=True)
     with open(os.path.join(HERE, "grok-build", "suggestions.md"), "w", encoding="utf-8") as f:
         f.write("\n".join(L) + "\n")
+
+
+def file_sha(rel):
+    with open(os.path.join(HERE, rel), "rb") as f:
+        return hashlib.sha256(f.read()).hexdigest()
+
+
+def write_manifest():
+    """grok-build/manifest.txt: '<sha256>  <path>' per installable file, then 'end' (a partial download lacks it)."""
+    lines = [f"{file_sha(p)}  {p}" for p in GB_MANIFEST if os.path.exists(os.path.join(HERE, p))]
+    with open(os.path.join(HERE, "grok-build", "manifest.txt"), "w", encoding="utf-8") as f:
+        f.write("# Agent City -> Grok Build manifest (generated by build_data.py)\n" + "\n".join(lines) + "\nend\n")
+
+
+def cap_activity(acts):
+    """Newest DATA_ACTIVITY_CAP actions plus each role's newest DATA_ROLE_KEEP, in the original newest-first order."""
+    keep, per = set(range(min(len(acts), DATA_ACTIVITY_CAP))), {}
+    for i, a in enumerate(acts):
+        r = a.get("role")
+        if per.get(r, 0) < DATA_ROLE_KEEP:
+            per[r] = per.get(r, 0) + 1
+            keep.add(i)
+    return [a for i, a in enumerate(acts) if i in keep]
+
+
+def load_costs():
+    c = load_json("costs.json", {})
+    if not isinstance(c, dict):
+        return {"ledger": [], "savings": []}
+    return {"ledger": [x for x in c.get("ledger", []) if isinstance(x, dict)], "savings": [x for x in c.get("savings", []) if isinstance(x, dict)]}
 
 
 def write_private():
@@ -226,24 +325,36 @@ def write_private():
 
 
 def main():
+    errs = gb_errors()
+    if errs:  # stop before writing anything, so a session can never publish a malformed feed
+        print("build_data.py: invalid gb entries (fix them; nothing was written):\n  " + "\n  ".join(errs), file=sys.stderr)
+        return 1
+    acts = load_activity()
     data = {
         "generatedAt": datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%d %H:%M UTC"),
         "skills": load_skills(),
         "agents": load_agents(),
         "changelog": load_changelog(),
         "finds": load_finds(),
-        "activity": load_activity(),
+        "activity": cap_activity(acts),
+        "totals": {"actions": len(acts), "sessions": len({a.get("session") for a in acts if a.get("session")})},
         "routines": load_routines(),
         "ideals": load_ideals(),
+        "costs": load_costs(),
     }
-    data["gb"] = [{k: i[k] for k in ("id", "change", "target", "size", "date")} for i in gb_items(data["activity"], data["finds"])]
-    write_gb_suggestions(data["activity"], gb_items(data["activity"], data["finds"]), data["generatedAt"])
+    items = gb_items()
+    data["gb"] = [{k: i[k] for k in ("id", "change", "target", "size", "date", "checks", "tests")} for i in items]
+    write_gb_suggestions(acts, items, data["generatedAt"])
+    write_manifest()
     out = os.path.join(HERE, "data.js")
-    with open(out, "w", encoding="utf-8") as f:
+    tmp = out + ".tmp"
+    with open(tmp, "w", encoding="utf-8") as f:
         f.write("// AUTO-GENERATED by build_data.py - do not edit by hand.\n")
         f.write("window.CITY_DATA = " + json.dumps(data, ensure_ascii=False, separators=(",", ":")) + ";\n")
-    print(f"data.js: {len(data['skills'])} skills, {len(data['agents'])} agents, {len(data['changelog'])} changelog entries, {len(data['finds'])} finds, {len(data['activity'])} actions, {len(data['routines'])} routines, {len(data['gb'])} Grok Build items; private.js: {'yes' if write_private() else 'no'}")
+    os.replace(tmp, out)
+    print(f"data.js: {len(data['skills'])} skills, {len(data['agents'])} agents, {len(data['changelog'])} changelog entries, {len(data['finds'])} finds, {len(data['activity'])}/{len(acts)} actions, {len(data['routines'])} routines, {len(items)} Grok Build items; private.js: {'yes' if write_private() else 'no'}")
+    return 0
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())

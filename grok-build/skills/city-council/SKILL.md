@@ -22,6 +22,7 @@ Based on the owner's `council` skill (roster, rubric, king protocol), cut down f
 - **Repo and branch:** path, current branch, clean or dirty worktree (`git status --short`).
 - **Files:** the paths the change would touch (read them; do not guess).
 - **Tests:** the project's test command and whether it passes now. "No tests" is a fact, say it.
+- **Checks and tests for this change:** the wiring checks (before and after) and the 1-2 tests that will prove it. No runnable test = NO for now.
 - **Diff size:** rough lines added/removed.
 - **Stakes, Reversibility, Constraints, Out of scope.**
 Ask one clarifying question only if a field is unknown AND would change the answer. In city-apply, never ask: treat unknown as NO for now.
@@ -51,9 +52,9 @@ Each answer, 40-80 words: Position, key reason, strongest objection to myself, w
 - Red Team: 3 one-line strikes on the draft; the King revises or rebuts each.
 
 ## 6. Verdict format
-**YES** or **NO** first (decline to decide = NO for now), then: Recommendation (1-2 sentences); Confidence X/10; Ideals fit (one line); Load-bearing assumption; What would flip it; Dissent (named or "none"); Action: the exact next step (files, command, test).
+**YES** or **NO** first (decline to decide = NO for now), then: Recommendation (1-2 sentences); Confidence X/10; Ideals fit (one line); Load-bearing assumption; What would flip it; Dissent (named or "none"); Action: the exact next step (files, the checks, and the tests that must pass).
 
 ## 7. What a YES allows
-A YES lets Grok Build make the change locally, run tests, and commit. It never allows, without the owner saying so in this session: force-push or history rewrite, deleting the owner's data or files outside the change, adding paid services or new accounts, sending or posting anything outside the machine. Push only if the repo's own AGENTS.md or workflow already pushes.
+A YES lets Grok Build make the change locally, pass its checks and tests, and commit (rolled back if any fail). It never allows, without the owner saying so in this session: force-push or history rewrite, deleting the owner's data or files outside the change, adding paid services or new accounts, sending or posting anything outside the machine. Push only if the repo's own AGENTS.md or workflow already pushes.
 
 No emojis. No invented facts: name what is missing and reason in ranges.

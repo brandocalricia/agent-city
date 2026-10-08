@@ -1,5 +1,14 @@
 # Agent City - Changelog
 
+## 2026-10-08 - Cost agents + bulletproof Grok Build link
+- Every Grok Build item now carries mandatory `checks` (wiring: references resolve, config loads, lint/build, grok inspect, no duplicates) and 1-2 `tests`; build_data.py refuses to build when one is malformed or more than 3 arrive in a day
+- New helper grok-build/city_apply.py does all apply bookkeeping on the owner's machine: process-once log, claims for parallel sessions, max 3 applies an hour, runs checks before and after, rolls back from a snapshot on any failure, commits only the declared files, retries deferred items at most 3 times, reports half-applied items from crashed sessions
+- Feed commands are limited to read/test commands (allowlist enforced at both ends), so the public feed cannot run arbitrary code on the owner's machine
+- Updater: sha256 manifest with an end marker, verify-then-atomic-replace, scripts wrapped so a truncated download runs nothing, lock for concurrent sessions, 12 s budget, kill switch (`off`) and code pin (`pin`), updates.log; corrupt applied.json is set aside and rebuilt from the log
+- Test suite (68 tests) in tests/ and a GitHub Actions workflow on ubuntu and macOS
+- New roles in the Treasury: Meter Reader (cost ledger per session from GitHub evidence, with trend) and Optimizer (turns findings into savings); first pass: pushes grew 49 -> 81 KB over 3 sessions, data.js now capped
+- Full Council red-team of the interchange: YES 7/10, five fixes made (write flags blocked, daily item cap, updater time budget, crash recovery, immutable change text)
+
 ## 2026-10-08 - Grok Build link
 - New grok-build/ folder: city-council (the council tailored for coding: repo/files/tests in the Question Crystal, code-specific Full triggers, cheap-tier seats and strongest-tier King), city-apply (review and apply), 7 Grok Build prompts, README
 - One-command installer (install.sh) puts the rule, both skills, and a SessionStart hook into ~/.grok; the hook's update.sh pulls fresh files from this repo so changes load automatically; idempotent, backs up anything it replaces, has --uninstall

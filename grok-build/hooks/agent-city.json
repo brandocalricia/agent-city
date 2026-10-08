@@ -7,7 +7,7 @@
           {
             "type": "command",
             "command": "$HOME/.grok/agent-city/update.sh",
-            "timeout": 15
+            "timeout": 20
           }
         ]
       }

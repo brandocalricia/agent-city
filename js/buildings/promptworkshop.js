@@ -15,8 +15,9 @@ function gbSection() {
   return `<h4>🛠️ Grok Build</h4>`
     + C.card('Install once', 'Adds the city council, review-and-apply, and these prompts to Grok Build; a session-start hook keeps them current.', `<pre>${esc(INSTALL)}</pre>${C.copyBtn(INSTALL)}`)
     + C.card('Files', '', `<div class="m">${link('README.md', 'How it works')} · ${link('prompts.md', 'Grok Build prompts')} · ${link('suggestions.md', 'Suggestions feed')} · ${link('skills/city-council/SKILL.md', 'city-council')} · ${link('skills/city-apply/SKILL.md', 'city-apply')}</div>`)
-    + `<p class="sub">Apply queue (${Q.length}): Grok Build's own council rules on each; YES is built and committed locally, NO is recorded.</p>`
-    + Q.map(i => C.card(esc(i.id), esc(`${i.size} · ${i.target} · ${i.date}`), `<div class="m">${esc(i.change)}</div>`)).join('');
+    + `<p class="sub">Apply queue (${Q.length}): Grok Build's own council rules on each; YES is built only if its checks pass before and after and its tests pass, else it rolls back. NO is recorded.</p>`
+    + Q.map(i => C.card(esc(i.id), esc(`${i.size} · ${i.target} · ${i.date}`), `<div class="m">${esc(i.change)}</div>`
+      + `<div class="m">✔ ${(i.checks || []).length} checks · 🧪 ${(i.tests || []).length} tests</div>`)).join('');
 }
 City.building({
   id: 'promptworkshop', name: 'Prompt Workshop', icon: '✍️', block: [1, 1], role: 'promptsmith', small: true,

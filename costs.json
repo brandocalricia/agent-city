@@ -1,0 +1,68 @@
+{
+ "method": "Push content = bytes of every file in the session's commit, read from GitHub at that commit. Token figures are estimates (bytes / 4).",
+ "ledger": [
+  {
+   "date": "2026-10-08",
+   "session": "Notice Board cleanup",
+   "commit": "c1988bf",
+   "files_pushed": 13,
+   "kb_pushed": 49.2,
+   "est_tokens": 12600,
+   "top": "data.js 13.2 KB, activity.json 7.5 KB, build_data.py 6.8 KB"
+  },
+  {
+   "date": "2026-10-08",
+   "session": "The Council arrives",
+   "commit": "e0adaa5",
+   "files_pushed": 12,
+   "kb_pushed": 63.3,
+   "est_tokens": 16200,
+   "top": "data.js 17.5 KB, activity.json 9.1 KB, build_data.py 7.6 KB"
+  },
+  {
+   "date": "2026-10-08",
+   "session": "Grok Build link",
+   "commit": "43f3ada",
+   "files_pushed": 17,
+   "kb_pushed": 81.3,
+   "est_tokens": 20800,
+   "top": "data.js 20.8 KB, build_data.py 10.9 KB, activity.json 10.7 KB"
+  },
+  {
+   "date": "2026-10-08",
+   "session": "Cost agents + bulletproofing",
+   "commit": "this session (measured before push)",
+   "files_pushed": 29,
+   "kb_pushed": 195.1,
+   "est_tokens": 49900,
+   "top": "data.js 30.3 KB, city_apply.py 26.2 KB, build_data.py 16.7 KB",
+   "note": "One-off: new test suite and helper (~half the bytes). data.js is now capped."
+  }
+ ],
+ "savings": [
+  {
+   "date": "2026-10-08",
+   "by": "optimizer",
+   "change": "data.js keeps the newest 150 actions plus each role's newest 12; totals stay exact",
+   "status": "implemented",
+   "est_saving": "data.js stops growing with the log (it grew ~3.7 KB per session)",
+   "evidence": "data.js was the largest file in all 3 measured pushes: 13.2 -> 17.5 -> 20.8 KB"
+  },
+  {
+   "date": "2026-10-08",
+   "by": "optimizer",
+   "change": "Move new generators out of build_data.py into small modules so routine sessions stop re-pushing it",
+   "status": "proposed",
+   "est_saving": "~2-3k tokens per session that would touch it (est.)",
+   "evidence": "build_data.py was pushed in 3 of 3 sessions (6.8-10.9 KB each)"
+  },
+  {
+   "date": "2026-10-08",
+   "by": "optimizer",
+   "change": "Grok Build: search first, read only the needed ranges of files over ~400 lines",
+   "status": "sent to Grok Build",
+   "est_saving": "depends on his sessions; not measured",
+   "evidence": "Context from whole-file reads is the main avoidable input cost in coding sessions"
+  }
+ ]
+}
