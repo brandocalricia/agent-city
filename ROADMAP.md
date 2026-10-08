@@ -17,6 +17,7 @@ Legend: [x] done · [ ] todo · (W) wow factor · (U) useful
 - [x] 7. Minimap with click-to-fly
 - [x] 8. Notice Board in the plaza
 - [x] 9. Stats Tower
+- [x] USER REQUEST: Notice Board current; Toolsmith adopted 2 finds into the Study Hall
 
 ## Backlog (top = next)
 1. [ ] (U) Deep links: open a panel from the URL hash (e.g. /agent-city/#market, #role=tutor) so Grok Bot can link you straight to something
@@ -51,3 +52,5 @@ Legend: [x] done · [ ] todo · (W) wow factor · (U) useful
 30. [ ] (U) Performance pass: label culling, LOD for far buildings, FPS counter in saver mode
 31. [ ] (W) Drone tour: one-click guided tour of all landmarks with captions
 32. [ ] (W) Light ambient pedestrians for atmosphere only (purely visual, cheap)
+33. [ ] (U) Study Hall: Tutor problems link to the matching adopted resource (e.g. the Paul's Notes section for that topic)
+34. [ ] (W) Notice Board flag turns green and confetti plays when the board reaches 'All clear'

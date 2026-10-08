@@ -26,8 +26,8 @@ City.building({
     const age = f => (now - new Date(f.date + 'T12:00:00').getTime()) / 864e5;
     return `<h2>🛒 The Market</h2><p class="sub">The Scout researches useful tools and resources and brings the best finds back here, freshest first.</p>
       <h4>Finds (${F.length})</h4>` + (F.length
-        ? F.map(f => C.card((f.url ? `<a href="${esc(f.url)}" target="_blank" rel="noopener">${esc(f.title)}</a>` : esc(f.title)) + (age(f) < 3 ? '<span class="badge new">new</span>' : '') + (f.status === 'approved' ? '<span class="badge">approved</span>' : ''),
-            `${esc(f.source)}${f.date ? ' · ' + esc(f.date) : ''}`, (f.why_useful ? `<pre>${esc(f.why_useful)}</pre>` : '') + (f.status !== 'approved' ? C.copyBtn(`Approve the Market find "${f.title}" for the Toolsmith.`) : ''))).join('')
+        ? F.map(f => C.card((f.url ? `<a href="${esc(f.url)}" target="_blank" rel="noopener">${esc(f.title)}</a>` : esc(f.title)) + (age(f) < 3 ? '<span class="badge new">new</span>' : '') + (f.status && f.status !== 'new' ? `<span class="badge">${esc(f.status)}</span>` : ''),
+            `${esc(f.source)}${f.date ? ' · ' + esc(f.date) : ''}`, (f.why_useful ? `<pre>${esc(f.why_useful)}</pre>` : '') + (f.status === 'adopted' && f.course ? `<div class="m">Set up by the Toolsmith in the Study Hall (${esc(f.course)}).</div>` : '') + (f.status === 'needs you' ? '<div class="m">Only you can do this one; it is on the Notice Board.</div>' : '') + ((!f.status || f.status === 'new') ? C.copyBtn(`Approve the Market find "${f.title}" for the Toolsmith.`) : ''))).join('')
           + `<p class="m">Like one? Copy its approval line and send it to Grok Bot; the Toolsmith only works on approved finds.</p>`
         : C.empty('Scouts start shopping tomorrow', 'Finds appear here once finds.json gets its first entry.'));
   },

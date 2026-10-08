@@ -1,5 +1,13 @@
 # Agent City - Changelog
 
+## 2026-10-08 - Notice Board cleanup
+- Librarian: the agent-city-session skill is saved and is the first book in the Library; its proposal is off the Notice Board
+- Toolsmith: adopted Paul's Calc I notes and Python Tutor as clickable links in the Study Hall (Calc I and Intro to CS sections)
+- Market: finds show their status (adopted / needs you); approval buttons only on undecided finds. Workshop lists set-up finds with links
+- Notice Board: down to 1 optional item (GitHub Student Developer Pack, needs your school verification), now with a clickable link
+- Library: skill descriptions written as multi-line YAML now show properly (was showing ">-")
+- AGENTS.md: "Never break the live site" publishing rule
+
 ## 2026-10-08 - Days 2-4: Catch-up run (9 sessions in one)
 - Auditor: split the 50 KB index.html into a small shell + css/style.css + ~25 small plain-script files (one per building), so sessions push only what changed
 - Role agents: 12 glowing characters (Inspector, Builder, Scout, Courier, Timekeeper, Tutor, Librarian, Prompt Smith, Toolsmith, Critic, Archivist, Auditor) with speech bubbles of their latest real action; click for history

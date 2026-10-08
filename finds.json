@@ -5,7 +5,7 @@
     "url": "https://education.github.com/pack",
     "source": "education.github.com (Scout research)",
     "why_useful": "You already build on GitHub (this city lives there). Verified students get a bundle of free developer tools, and the pack page lists GitHub Copilot among them. Applying needs school verification, so it's your call.",
-    "status": "new"
+    "status": "needs you"
   },
   {
     "date": "2026-10-08",
@@ -13,7 +13,8 @@
     "url": "https://tutorial.math.lamar.edu/Classes/CalcI/CalcI.aspx",
     "source": "tutorial.math.lamar.edu (Scout research)",
     "why_useful": "Free Calc I notes (limits, derivatives, applications) with practice problems that include full solutions, so you can self-test before quizzes and check each step.",
-    "status": "new"
+    "status": "adopted",
+    "course": "Calc I"
   },
   {
     "date": "2026-10-08",
@@ -21,6 +22,7 @@
     "url": "https://pythontutor.com/",
     "source": "pythontutor.com (Scout research)",
     "why_useful": "Paste intro to CS code and watch it run step by step: variables, lists, and function calls drawn as you go. Great for debugging and for understanding code-tracing questions.",
-    "status": "new"
+    "status": "adopted",
+    "course": "Intro to CS"
   }
 ]

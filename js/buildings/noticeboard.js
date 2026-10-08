@@ -14,7 +14,7 @@ City.building({
     const C = City, { esc } = C, N = C.needsYou(), P = (C.PRIV && C.PRIV.notices) || [], latest = C.DATA.changelog[0];
     return `<h2>📌 Notice Board</h2><p class="sub">Things waiting on you, and the latest news from the city.</p>
       <h4>Needs you (${N.length + P.length})</h4>` + (N.length || P.length
-        ? N.map(a => C.card(`${C.roleById[a.role] ? C.roleById[a.role].icon + ' ' : ''}${esc(a.action)}`, esc(a.date), a.details ? `<pre>${esc(a.details)}</pre>` : '')).join('')
+        ? N.map(a => C.card(`${C.roleById[a.role] ? C.roleById[a.role].icon + ' ' : ''}${esc(a.action)}`, esc(a.date), (a.details ? `<pre>${esc(a.details)}</pre>` : '') + (a.link ? `<div class="m"><a href="${esc(a.link)}" target="_blank" rel="noopener">${esc(a.link)}</a></div>` : ''))).join('')
           + P.map(p => C.card(`🔒 ${esc(p.title)}`, 'local only', p.detail ? `<pre>${esc(p.detail)}</pre>` : '')).join('')
         : C.empty('All clear'))
       + (C.PRIV ? '' : `<p class="m">🔒 Private reminders (email/calendar) only show on your local copy.</p>`)

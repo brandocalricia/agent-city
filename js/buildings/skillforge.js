@@ -22,6 +22,6 @@ City.building({
       ${C.card('2. Do it once, well', 'Run the task with Grok Bot until the result is exactly what you want.')}
       ${C.card('3. Save it', 'Say the line below right after a good run.', `<pre>${C.esc(say)}</pre>${C.copyBtn(say)}`)}
       ${C.card('4. Use it', 'Next time just say "use my <short-name> skill". It will show up as a book in the Library.')}`
-      + (lib ? `<h4>📖 Librarian's proposal</h4>` + C.entryCard(lib) : '');
+      + (lib ? `<h4>📖 Librarian's latest</h4>` + C.entryCard(lib) : '');
   },
 });

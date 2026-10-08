@@ -18,3 +18,6 @@ Public on GitHub Pages: https://brandocalricia.github.io/agent-city/ (the repo i
 **Rules:** one small increment per session; real data only (empty states instead of fake data); personal email/calendar content,
 sender names, and amounts never go into pushed files; push only changed files; bump `City.version` in `js/manifest.js`; keep it fast on laptops
 (merge/instance geometry, no extra dynamic lights, respect the `Q` saver toggle).
+
+## Never break the live site
+The site at https://brandocalricia.github.io/agent-city/ must keep working while work is in progress. Build and verify locally first; publish all changed files in one commit. If a push must be split, push new files first and the files that reference them (index.html, js/manifest.js, data.js) last. After publishing, load the live URL and confirm no failed requests.

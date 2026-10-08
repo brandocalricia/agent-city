@@ -1,7 +1,7 @@
 // Workshop: the Toolsmith only builds from Market finds you approved.
 City.building({
   id: 'workshop', name: 'Workshop', icon: '🛠', block: [2, 0], role: 'toolsmith', small: true,
-  sub: () => { const n = City.DATA.finds.filter(f => f.status === 'approved').length; return n ? `${n} approved` : 'waiting for an approved find'; },
+  sub: () => { const n = City.DATA.finds.filter(f => f.status === 'approved' || f.status === 'adopted').length; return n ? `${n} set up` : 'waiting for an approved find'; },
   build(g) {
     const C = City, y0 = C.BASE;
     const top = C.simpleBuilding(g, { w: 22, d: 16, h: 9, color: 0x6e737c, roofColor: 0x3a3f47, roof: 'gable', sign: { text: 'WORKSHOP', bg: '#2a2f38', fg: '#ffd27a', y: C.BASE + 7.6 } });
@@ -11,8 +11,8 @@ City.building({
     return top;
   },
   panel() {
-    const A = City.DATA.finds.filter(f => f.status === 'approved');
+    const C = City, A = C.DATA.finds.filter(f => f.status === 'approved' || f.status === 'adopted');
     return `<h2>🛠 Workshop</h2><p class="sub">The Toolsmith sets up or builds tools, but only from Market finds you have approved.</p>`
-      + (A.length ? A.map(f => City.card(City.esc(f.title), City.esc(f.date))).join('') : City.empty('Waiting for an approved find', 'Open the Market and copy the approval line of a find you like.'));
+      + (A.length ? A.map(f => C.card(f.url ? `<a href="${C.esc(f.url)}" target="_blank" rel="noopener">${C.esc(f.title)}</a>` : C.esc(f.title), `${C.esc(f.status)}${f.course ? ' · Study Hall: ' + C.esc(f.course) : ''} · ${C.esc(f.date)}`)).join('') : City.empty('Waiting for an approved find', 'Open the Market and copy the approval line of a find you like.'));
   },
 });

@@ -24,10 +24,14 @@ def parse_frontmatter(text):
     body = text
     if m:
         body = m.group(2)
+        key = None
         for line in m.group(1).splitlines():
             if ":" in line and not line.startswith(" "):
                 k, v = line.split(":", 1)
-                meta[k.strip()] = v.strip().strip('"').strip("'")
+                key, v = k.strip(), v.strip()
+                meta[key] = "" if v in (">", ">-", "|", "|-") else v.strip('"').strip("'")
+            elif key and line.startswith(" "):  # folded/literal block continuation
+                meta[key] = (meta[key] + " " + line.strip()).strip()
     return meta, body
 
 
@@ -101,7 +105,7 @@ def load_finds():
             raw = json.load(f)
     except (OSError, ValueError):
         return []
-    keys = ("date", "title", "url", "source", "why_useful")
+    keys = ("date", "title", "url", "source", "why_useful", "course")
     finds = [dict({k: str(x.get(k, "")) for k in keys}, status=str(x.get("status", "new"))) for x in raw if isinstance(x, dict) and x.get("title")]
     return sorted(finds, key=lambda x: x["date"], reverse=True)
 
