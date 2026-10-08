@@ -7,9 +7,20 @@ const TEMPLATES = [
   ['Check the work', 'Review your answer above as a strict grader: list any mistakes, unsupported claims, or missing steps, then give a corrected version.'],
   ['Turn it into a routine', 'Do this every <weekday/time>: <task>. Send me only what needs my attention, in under 5 bullets.'],
 ];
+const REPO = 'https://github.com/brandocalricia/agent-city/blob/main/grok-build/';
+const INSTALL = 'curl -fsSL https://raw.githubusercontent.com/brandocalricia/agent-city/main/grok-build/install.sh | bash';
+function gbSection() {
+  const C = City, { esc } = C, Q = (window.CITY_DATA && CITY_DATA.gb) || [];
+  const link = (f, t) => `<a href="${REPO}${f}" target="_blank" rel="noopener">${t}</a>`;
+  return `<h4>🛠️ Grok Build</h4>`
+    + C.card('Install once', 'Adds the city council, review-and-apply, and these prompts to Grok Build; a session-start hook keeps them current.', `<pre>${esc(INSTALL)}</pre>${C.copyBtn(INSTALL)}`)
+    + C.card('Files', '', `<div class="m">${link('README.md', 'How it works')} · ${link('prompts.md', 'Grok Build prompts')} · ${link('suggestions.md', 'Suggestions feed')} · ${link('skills/city-council/SKILL.md', 'city-council')} · ${link('skills/city-apply/SKILL.md', 'city-apply')}</div>`)
+    + `<p class="sub">Apply queue (${Q.length}): Grok Build's own council rules on each; YES is built and committed locally, NO is recorded.</p>`
+    + Q.map(i => C.card(esc(i.id), esc(`${i.size} · ${i.target} · ${i.date}`), `<div class="m">${esc(i.change)}</div>`)).join('');
+}
 City.building({
   id: 'promptworkshop', name: 'Prompt Workshop', icon: '✍️', block: [1, 1], role: 'promptsmith', small: true,
-  sub: () => `${TEMPLATES.length} templates`,
+  sub: () => `${TEMPLATES.length} templates · Grok Build`,
   build(g) {
     const C = City, y0 = C.BASE;
     const top = C.simpleBuilding(g, { w: 20, d: 14, h: 9, color: 0x3b3550, roofColor: 0x222033 });
@@ -22,7 +33,8 @@ City.building({
     const C = City, { esc } = C, tip = C.latestFor('promptsmith');
     return `<h2>✍️ Prompt Workshop</h2><p class="sub">Small habits that make agents much more reliable. Copy a template, fill the brackets, paste it to Grok Bot.</p>`
       + (tip ? `<h4>Latest tip</h4>` + C.entryCard(tip) : '')
-      + `<h4>Templates</h4>` + TEMPLATES.map(([t, body]) => C.card(esc(t), '', `<pre>${esc(body)}</pre>${C.copyBtn(body)}`)).join('');
+      + `<h4>Templates</h4>` + TEMPLATES.map(([t, body]) => C.card(esc(t), '', `<pre>${esc(body)}</pre>${C.copyBtn(body)}`)).join('')
+      + gbSection();
   },
 });
 })();

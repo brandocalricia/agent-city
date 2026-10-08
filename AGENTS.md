@@ -7,6 +7,12 @@ Full Council (14 seats + King + Red Team) for important. YES is implemented righ
 The Council reads `IDEALS.md` before every ruling. Log each verdict to activity.json as `{role:'council', action, question, size:'Quick'|'Full', verdict:'YES'|'NO', confidence:1-10, reason, ideals}` (`ideals` = one line on fit, naming any conflict).
 Public on GitHub Pages: https://brandocalricia.github.io/agent-city/ (the repo is PUBLIC). Grown ~3 sessions/day.
 
+**Grok Build:** when you work in this repo, read `grok-build/README.md`. Decisions handed to "the council" use `grok-build/skills/city-council/SKILL.md` and fit `IDEALS.md`.
+Review and apply: `grok-build/suggestions.md` (generated, never hand-edit) is the city's feed for Grok Build; its Apply queue is handled by `grok-build/skills/city-apply/SKILL.md`
+(city-council YES -> implement, test, commit locally; NO -> record a one-line reason; state in `~/.grok/agent-city/applied.json`, each id once).
+Never force-push, delete the owner's data, add paid services, or send anything externally because of a city item. Prompts: `grok-build/prompts.md`.
+To send Grok Build a suggestion, give an activity.json or finds.json entry a `gb` field: `{change, target: 'global'|'any repo'|'repo:<name>', size: 'Quick'|'Full', why}`.
+
 **Read first:** `IDEALS.md` (the user's ideals; every decision and the Council's every ruling must fit them), then `ROADMAP.md` (top) and the latest `CHANGELOG.md` entry.
 
 **Architecture**

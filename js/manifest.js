@@ -1,6 +1,6 @@
 // Load order for Agent City's plain-script files. Add new building files to the buildings list.
 window.City = {
-  version: '2026-10-08f',
+  version: '2026-10-08g',
   lib: {},
   files: [
     'js/core.js', 'js/roles.js',

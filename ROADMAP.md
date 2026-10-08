@@ -21,6 +21,7 @@ Legend: [x] done · [ ] todo · (W) wow factor · (U) useful
 - [x] USER REQUEST: Council role + Council Chamber; first verdicts
 - [x] 33. (Council YES 9/10) Tutor problems link to the matching study resource
 - [x] 34. (Council YES 5/10) Notice Board confetti on All clear
+- [x] USER REQUEST: Grok Build link (grok-build/: city-council, city-apply, prompts, suggestions feed, installer + SessionStart hook)
 
 ## Backlog (top = next)
 1. [ ] (U) Deep links: open a panel from the URL hash (e.g. /agent-city/#market, #role=tutor) so Grok Bot can link you straight to something
@@ -57,3 +58,5 @@ Legend: [x] done · [ ] todo · (W) wow factor · (U) useful
 32. [ ] (W) Light ambient pedestrians for atmosphere only (purely visual, cheap)
 35. [ ] (U) Council docket: open roadmap items and Notice Board items waiting for a verdict, shown in the Council Chamber
 36. [ ] (W) Council Chamber glows green or red for a few seconds after a fresh YES or NO verdict
+37. [ ] (U) Grok Build Pier: a harbor building on the city edge for the Grok Build feed (queue, ids, which roles sent them); later, applied/declined counts if the owner opts into publishing a summary
+38. [ ] (U) Prompt linter as a Grok Build skill (/prompt-lint): checks a prompt for goal, context, done-when, and output before work starts; shared rules with roadmap #4

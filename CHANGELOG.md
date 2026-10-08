@@ -1,5 +1,14 @@
 # Agent City - Changelog
 
+## 2026-10-08 - Grok Build link
+- New grok-build/ folder: city-council (the council tailored for coding: repo/files/tests in the Question Crystal, code-specific Full triggers, cheap-tier seats and strongest-tier King), city-apply (review and apply), 7 Grok Build prompts, README
+- One-command installer (install.sh) puts the rule, both skills, and a SessionStart hook into ~/.grok; the hook's update.sh pulls fresh files from this repo so changes load automatically; idempotent, backs up anything it replaces, has --uninstall
+- build_data.py now writes grok-build/suggestions.md every session: Apply queue (entries with a gb field, stable AC- ids), latest Council verdicts, next best steps, Scout finds for Grok Build
+- Review and apply: Grok Build convenes its own council on each new item; YES is implemented, tested, and committed locally, NO is recorded with a reason (~/.grok/agent-city/applied.json, each id once)
+- First 2 items in the queue: Prompt Smith's "Done when" rule and the Critic's diff-vs-request review
+- Prompt Workshop panel: Grok Build section with the install command (copy button), file links, and the Apply queue
+- AGENTS.md: Grok Build section pointing to grok-build/, IDEALS.md, and the suggestions feed
+
 ## 2026-10-08 - The Council arrives
 - New role: the Council (magenta) decides Notice Board items and city decisions with the council skill; Quick Council (3 seats) for minor, Full Council (14 seats + King + Red Team) for important
 - New building: Council Chamber, a round domed chamber with 14 columns next to City Hall; panel explains how it decides and lists verdicts with YES/NO, size, confidence and reason
