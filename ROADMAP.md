@@ -23,9 +23,11 @@ Legend: [x] done · [ ] todo · (W) wow factor · (U) useful
 - [x] 34. (Council YES 5/10) Notice Board confetti on All clear
 - [x] USER REQUEST: Grok Build link (grok-build/: city-council, city-apply, prompts, suggestions feed, installer + SessionStart hook)
 - [x] 14. Treasury cost chart: Meter Reader's ledger bars + Optimizer savings (USER REQUEST: cost agents + bulletproof Grok Build link, tests + CI)
+- [x] USER REQUEST: Message link Grok Bot <-> Grok Build (private issue thread, watcher + send + bot-link skill, 28 tests)
+- [x] 1. Deep links: #market, #role=tutor open a panel; the address bar follows the open panel (Council: use them in notes)
+- [x] USER REQUEST: Newsroom + Reporter (morning news digest, news.json with 14-day expiry, routed to Council/Scout/Prompt Smith/Tutor/GB)
 
 ## Backlog (top = next)
-1. [ ] (U) Deep links: open a panel from the URL hash (e.g. /agent-city/#market, #role=tutor) so Grok Bot can link you straight to something
 2. [ ] (U) Morning-brief kiosk in the plaza: Courier + Timekeeper notes combined (local copy only)
 3. [ ] (U) Study Hall answer box: type your answer, get a local check before the solution unlocks
 4. [ ] (U) Prompt linter in the Prompt Workshop: paste a prompt, see what's missing (goal, context, done-when, format)
@@ -62,3 +64,7 @@ Legend: [x] done · [ ] todo · (W) wow factor · (U) useful
 38. [ ] (U) Prompt linter as a Grok Build skill (/prompt-lint): checks a prompt for goal, context, done-when, and output before work starts; shared rules with roadmap #4
 39. [ ] (U) Archive rotation: move activity.json lines and CHANGELOG entries older than 30 days into archive/ files so every session reads and pushes less
 40. [ ] (U) Grok Build cost log: the helper appends tokens/time per applied item to a local file; the owner can opt in to sharing totals with the Meter Reader
+41. [ ] (U) Message-link panel: a Post Office window showing the link's health (last message each way, watcher seen, sends this hour) without message contents
+42. [ ] (U) Newsroom follow-ups: the Reporter marks a story 'confirmed' or 'retracted' when a primary source appears, and the Scout opens a find for confirmed tools
+43. [ ] (U) "Copy link" button in every panel header (copies the deep link, so a panel can be sent to Grok Bot or Grok Build)
+44. [ ] (W) Deep-link tours: #tour=morning flies through the buildings that changed today, one caption each
