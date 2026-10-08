@@ -16,7 +16,7 @@ C.makeClock = (g, p, r, rot = 0) => {
 const tickClocks = () => { const [h, m] = C.denverHMS(); clocks.forEach(c => { c.h.rotation.z = -((h % 12) + m / 60) / 12 * Math.PI * 2; c.m.rotation.z = -m / 60 * Math.PI * 2; }); };
 
 const P = { // palettes
-  night: { fog: 0.0026, top: 0x040818, mid: 0x0d1636, bot: 0x1b2444, hemiS: 0x41508a, hemiG: 0x15131c, hemi: 0.5, sun: 0x8fa2ff, sunI: 0.35, win: 2.1, stars: 0.95, bulb: 2.6, glow: [0.5, 0.55, 0.7], exp: 1.05 },
+  night: { fog: 0.0024, top: 0x030716, mid: 0x0c1838, bot: 0x1c2a52, hemiS: 0x4a5a9a, hemiG: 0x17151f, hemi: 0.6, sun: 0x9fb0ff, sunI: 0.45, win: 2.4, stars: 0.95, bulb: 2.6, glow: [0.5, 0.55, 0.7], exp: 1.05 },
   dusk: { fog: 0.0028,  top: 0x16204a, mid: 0x6a5aa0, bot: 0xd99a86, hemiS: 0xa9b8ff, hemiG: 0x4a3a32, hemi: 1.15, sun: 0xffc690, sunI: 2.2, win: 1.5, stars: 0.6, bulb: 2.4, glow: [1, 0.7, 0.45], exp: 1.05 },
   day:  { fog: 0.0017,  top: 0x2f6fd0, mid: 0x7fb3ea, bot: 0xd2e4f2, hemiS: 0xd4e8ff, hemiG: 0x5a5040, hemi: 1.35, sun: 0xfff1dc, sunI: 3.0, win: 0.35, stars: 0, bulb: 0.7, glow: [1, 0.95, 0.85], exp: 1.0 },
 };

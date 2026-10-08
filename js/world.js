@@ -111,25 +111,16 @@ C.blinkMat = new THREE.MeshBasicMaterial({ color: new THREE.Color(0xff3030).mult
   trunk.castShadow = leaves.castShadow = true; scene.add(trunk, leaves);
 }
 
-// Central plaza & fountain
+// Central plaza (Town Hall stands in the middle; see js/buildings/townhall.js)
 {
   const g = new THREE.Group(); scene.add(g);
   C.box(g, B, BASE + 0.05, B, M.plaza, 0, (BASE + 0.05) / 2, 0);
-  const ring = new THREE.Mesh(new THREE.CylinderGeometry(6.5, 6.8, 1.1, 32), M.stone); ring.position.y = BASE + 0.55; ring.castShadow = true; g.add(ring);
-  const water = new THREE.Mesh(new THREE.CylinderGeometry(6, 6, 0.2, 32), M.water); water.position.y = BASE + 1.0; g.add(water);
-  const pillar = new THREE.Mesh(new THREE.CylinderGeometry(0.6, 0.9, 3.4, 12), M.stone); pillar.position.y = BASE + 2.4; g.add(pillar);
-  const bowl = new THREE.Mesh(new THREE.CylinderGeometry(2.2, 0.8, 0.7, 20), M.stone); bowl.position.y = BASE + 4.1; g.add(bowl);
-  C.solids.push({ x0: -7, x1: 7, z0: -7, z1: 7 });
-  for (const [x, z, r] of [[0, 11, 0], [0, -11, 0], [11, 0, 1], [-11, 0, 1]]) C.box(g, 4, 0.5, 1.2, M.wood, x, BASE + 0.7, z).rotation.y = r * Math.PI / 2;
-  const n = 260, pos = new Float32Array(n * 3), drops = [];
-  for (let k = 0; k < n; k++) drops.push({ t: rnd() * 1.6, a: rnd() * Math.PI * 2, v: 2 + rnd() * 1.5 });
-  const geo = new THREE.BufferGeometry(); geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
-  g.add(new THREE.Points(geo, new THREE.PointsMaterial({ color: 0xbfe9ff, size: 0.22, transparent: true, opacity: 0.85 })));
-  C.onFrame(dt => {
-    const p = geo.attributes.position;
-    drops.forEach((d, k) => { d.t += dt; if (d.t > 1.6) { d.t = 0; d.a = rnd() * Math.PI * 2; }
-      const r = d.t * 1.6; p.setXYZ(k, Math.cos(d.a) * r, BASE + 4.4 + d.v * d.t * 2.2 - 5.4 * d.t * d.t, Math.sin(d.a) * r); });
-    p.needsUpdate = true;
-  });
+  // Four low planters with autumn shrubs on the plaza corners
+  const shrub = new THREE.MeshStandardMaterial({ color: 0x5f7f3a, flatShading: true, roughness: 0.9 }), gold = new THREE.MeshStandardMaterial({ color: 0xc98b2b, flatShading: true, roughness: 0.9 });
+  for (const [sx, sz] of [[1, 1], [1, -1], [-1, -1]]) {
+    C.box(g, 5, 0.8, 5, M.stone, sx * 14.5, BASE + 0.4, sz * 14.5);
+    for (let k = 0; k < 3; k++) { const b = new THREE.Mesh(new THREE.IcosahedronGeometry(1.1 + rnd() * 0.4, 0), k % 2 ? gold : shrub); b.position.set(sx * 14.5 + (rnd() - 0.5) * 2.6, BASE + 1.5, sz * 14.5 + (rnd() - 0.5) * 2.6); b.castShadow = true; g.add(b); }
+    C.solids.push({ x0: sx * 14.5 - 2.5, x1: sx * 14.5 + 2.5, z0: sz * 14.5 - 2.5, z1: sz * 14.5 + 2.5 });
+  }
 }
 };
