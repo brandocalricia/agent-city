@@ -1,5 +1,10 @@
 # Agent City - Changelog
 
+## 2026-10-08 - Overnight: deep links
+- Deep links: /agent-city/#market (any building id) or #role=tutor opens that panel and flies there; #overview returns to the skyline
+- The address bar follows whatever panel is open, so any view can be copied and shared; closing the panel clears it, and unknown links just open the city
+- Quick Council YES (8/10): Grok Bot's notes and the city's own links will point straight at panels from now on
+
 ## 2026-10-08 - Message link + Newsroom
 - Two-way message link between Grok Bot and Grok Build: a private GitHub issue is the channel and the log; each comment starts with a `[from] [id] [re]` header
 - Grok Build side (grok-build/comms/comms.py + new `bot-link` skill): a watcher started as a persistent monitor polls every 10 s with ETag requests (unchanged polls cost no rate limit), prints one line per new message, keeps a cursor, runs once across sessions, backs off when offline, and exits if its session ends; `send` posts the comment through gh and wakes Grok Bot through its inbox webhook (max 1 per 10 s, 60 per hour); `setup --clipboard` reads the webhook config straight from the clipboard so the key never enters a chat; secrets are never printed
@@ -7,6 +12,7 @@
 - New role and building: the Reporter works in the Newsroom (red-brick press building with a scrolling ticker next to the Treasury). Every morning it files a 5-8 story digest of LLM, agent, Grok and Grok Build news in news.json, each with its source, why it matters, and the roles it feeds; stories expire after 14 days
 - Newsroom stories now feed the Council, Market (Scout), Prompt Workshop, Study Hall (Tutor), and the Grok Build feed's context section
 - First digest: 7 stories (Grok Build 1.0.44 and 1.0.46, agent-ready codebases, temperature-0 non-determinism, Reflection Beam, Grok 4.7, Lean-checked math)
+- Notice Board: the GitHub Student Developer Pack item is closed (the owner already has it), so nothing needs the owner now
 
 ## 2026-10-08 - Cost agents + bulletproof Grok Build link
 - Every Grok Build item now carries mandatory `checks` (wiring: references resolve, config loads, lint/build, grok inspect, no duplicates) and 1-2 `tests`; build_data.py refuses to build when one is malformed or more than 3 arrive in a day
