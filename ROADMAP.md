@@ -24,8 +24,8 @@ Legend: [x] done · [ ] todo · (W) wow factor · (U) useful
 - [x] USER REQUEST: Grok Build link (grok-build/: city-council, city-apply, prompts, suggestions feed, installer + SessionStart hook)
 - [x] 14. Treasury cost chart: Meter Reader's ledger bars + Optimizer savings (USER REQUEST: cost agents + bulletproof Grok Build link, tests + CI)
 - [x] USER REQUEST: Message link Grok Bot <-> Grok Build (private issue thread, watcher + send + bot-link skill, 28 tests)
-- [x] USER REQUEST: Newsroom + Reporter (morning news digest, news.json with 14-day expiry, routed to Council/Scout/Prompt Smith/Tutor/GB)
 - [x] 1. Deep links: #market, #role=tutor open a panel; the address bar follows the open panel (Council: use them in notes)
+- [x] USER REQUEST: Newsroom + Reporter (morning news digest, news.json with 14-day expiry, routed to Council/Scout/Prompt Smith/Tutor/GB)
 
 ## Backlog (top = next)
 2. [ ] (U) Morning-brief kiosk in the plaza: Courier + Timekeeper notes combined (local copy only)

@@ -55,6 +55,8 @@ in the same commit: a stale manifest makes owners' updaters reject the new files
 - `data.js` is GENERATED: `window.CITY_DATA = {generatedAt, skills, agents, changelog, finds, activity, totals, routines, ideals, costs, news, gb}`. Never hand-edit.
 - `private.js` (from `private.json`) is gitignored and only requested on file:// or localhost.
 
+**Deep links:** `#<building id>` (e.g. `#council`, `#market`), `#role=<role id>`, `#overview` open that view (`js/deeplink.js`); use them when linking the owner to something in the city.
+
 **Regenerate data:** `python3 build_data.py` (stdlib only). Off the Grok box the agent-data paths don't exist, so skills/agents/routines come out empty.
 
 **Rules:** one small increment per session; real data only (empty states instead of fake data); personal email/calendar content,
