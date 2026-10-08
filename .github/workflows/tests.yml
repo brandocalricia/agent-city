@@ -1,0 +1,21 @@
+name: tests
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  test:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Versions
+        run: python3 --version && /bin/bash --version | head -1 && git --version
+      - name: Test suite (build_data, install/update, city_apply; includes manifest-is-current)
+        run: python3 -m unittest discover -s tests -v
