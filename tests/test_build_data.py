@@ -1,5 +1,6 @@
-"""build_data.py: gb schema validation, stable ids, dedupe, expiry, malformed input stops the build, feed round trip."""
-import copy, datetime, json, os, shutil, unittest
+"""build_data.py: gb schema validation, stable ids, dedupe, expiry, malformed input stops the build, feed round trip,
+Newsroom digest (news.json) validation, expiry, and routing, and that every role's building exists and is loaded."""
+import copy, datetime, json, os, re, shutil, unittest
 from helpers import ROOT, GOOD_GB, TempDir
 import build_data as bd
 import city_apply as ca
@@ -11,8 +12,8 @@ def entry(gb, date=None, role="optimizer"):
 
 class Sandbox:
     """Point build_data at a temp copy of the repo's inputs."""
-    def __init__(self, activity, finds=None):
-        self.activity, self.finds = activity, finds or []
+    def __init__(self, activity, finds=None, news=None):
+        self.activity, self.finds, self.news = activity, finds or [], news
 
     def __enter__(self):
         self.t = TempDir(); d = self.t.__enter__()
@@ -21,6 +22,9 @@ class Sandbox:
         shutil.copytree(os.path.join(ROOT, "grok-build"), os.path.join(d, "grok-build"))
         json.dump(self.activity, open(os.path.join(d, "activity.json"), "w"))
         json.dump(self.finds, open(os.path.join(d, "finds.json"), "w"))
+        if self.news is not None:
+            with open(os.path.join(d, "news.json"), "w") as f:
+                f.write(self.news if isinstance(self.news, str) else json.dumps(self.news))
         self.old = (bd.HERE, bd.ROOT)
         bd.HERE, bd.ROOT = d, os.path.join(d, "no-agent-data")
         return d
@@ -144,6 +148,65 @@ class Build(unittest.TestCase):
         self.assertIn({"role": "rare", "action": "x"}, kept)
 
 
+def story(**k):
+    s = {"date": datetime.date.today().isoformat(), "title": "Grok Build 9.9 ships", "url": "https://x.ai/build/changelog",
+         "source": "x.ai changelog", "why": "Faster sessions for the owner.", "tag": "grok-build", "for": ["gb", "council"]}
+    s.update(k)
+    return s
+
+
+class News(unittest.TestCase):
+    def errors(self, news):
+        with Sandbox([], news=news):
+            return bd.news_errors()
+
+    def test_good_digest(self):
+        self.assertEqual(self.errors([story(), story(tag="school", **{"for": ["tutor"]})]), [])
+        self.assertEqual(self.errors(None), [])          # no news.json yet is fine
+
+    def test_bad_stories(self):
+        for bad in (story(url="http://plain.example"), story(url=""), story(tag="gossip"), story(why=" "), story(date="Oct 8"),
+                    story(**{"for": ["everyone"]}), story(**{"for": "gb"}), story(source=None)):
+            self.assertTrue(self.errors([bad]), bad)
+        self.assertTrue(self.errors({"items": []}))
+        self.assertTrue(self.errors("[not json"))
+
+    def test_max_per_day(self):
+        self.assertEqual(self.errors([story(title=str(i)) for i in range(bd.NEWS_MAX_PER_DAY)]), [])
+        self.assertTrue(self.errors([story(title=str(i)) for i in range(bd.NEWS_MAX_PER_DAY + 1)]))
+
+    def test_expiry_order_and_routing(self):
+        today = datetime.date.today()
+        old = (today - datetime.timedelta(days=bd.NEWS_KEEP_DAYS + 1)).isoformat()
+        edge = (today - datetime.timedelta(days=bd.NEWS_KEEP_DAYS)).isoformat()
+        news = [story(date=old, title="old"), story(date=edge, title="edge", **{"for": ["scout"]}), story(title="fresh")]
+        with Sandbox([], news=news) as d:
+            self.assertEqual(bd.main(), 0)
+            data = json.loads(open(os.path.join(d, "data.js")).read().split("window.CITY_DATA = ", 1)[1].rstrip().rstrip(";"))
+            feed = open(os.path.join(d, "grok-build", "suggestions.md")).read()
+        self.assertEqual([n["title"] for n in data["news"]], ["fresh", "edge"])
+        ctx = feed.split("## Newsroom", 1)[1].split("\n## ", 1)[0]
+        self.assertIn("fresh", ctx); self.assertNotIn("edge", ctx); self.assertNotIn("old", ctx)
+        self.assertNotIn("fresh", feed.split("## Apply queue", 1)[1].split("\n## ", 1)[0])   # context only, never actionable
+
+    def test_malformed_news_stops_build(self):
+        with Sandbox([], news=[story(url="javascript:alert(1)")]) as d:
+            open(os.path.join(d, "data.js"), "w").write("old")
+            self.assertEqual(bd.main(), 1)
+            self.assertEqual(open(os.path.join(d, "data.js")).read(), "old")
+
+
+class CityWiring(unittest.TestCase):
+    def test_every_role_has_a_loaded_building(self):
+        roles = open(os.path.join(ROOT, "js", "roles.js"), encoding="utf-8").read()
+        manifest = open(os.path.join(ROOT, "js", "manifest.js"), encoding="utf-8").read()
+        listed = re.search(r"\[([^\]]*)\]\.map\(b => `js/buildings/", manifest).group(1)
+        for rid, b in re.findall(r"\{ id: '([a-z]+)',[^\n]*?building: '([a-z]+)'", roles):
+            self.assertTrue(os.path.exists(os.path.join(ROOT, "js", "buildings", b + ".js")), f"{rid}: {b}.js missing")
+            self.assertIn("'%s'" % b, listed, f"{b} not in js/manifest.js")
+        self.assertIn("'reporter'", roles)
+
+
 class RepoState(unittest.TestCase):
     """The committed repo must be consistent: a stale manifest would block every update on the owner's machine."""
     def test_committed_manifest_matches_files(self):
@@ -157,10 +220,13 @@ class RepoState(unittest.TestCase):
     def test_committed_gb_entries_are_valid(self):
         self.assertEqual(bd.gb_errors(), [])
 
+    def test_committed_news_is_valid(self):
+        self.assertEqual(bd.news_errors(), [])
+
     def test_data_js_parses(self):
         txt = open(os.path.join(ROOT, "data.js"), encoding="utf-8").read()
         data = json.loads(txt.split("window.CITY_DATA = ", 1)[1].rstrip().rstrip(";"))
-        for k in ("skills", "activity", "changelog", "gb", "costs", "totals"):
+        for k in ("skills", "activity", "changelog", "gb", "costs", "totals", "news"):
             self.assertIn(k, data)
 
 
