@@ -54,6 +54,8 @@ grok-build/skills/city-apply/SKILL.md|$G/skills/city-apply/SKILL.md|name: city-a
 grok-build/rules/40-agent-city.md|$G/rules/40-agent-city.md|Agent City|1
 grok-build/hooks/agent-city.json|$G/hooks/agent-city.json|agent-city/update.sh|1
 grok-build/city_apply.py|$D/city_apply.py|Agent City -> Grok Build: deterministic helper|1
+grok-build/comms/bot-link/SKILL.md|$G/skills/bot-link/SKILL.md|name: bot-link|1
+grok-build/comms/comms.py|$D/comms.py|Agent City <-> Grok Build message link|1
 grok-build/update.sh|$D/update.sh|Agent City -> Grok Build updater|1
 T
 }
