@@ -1,5 +1,14 @@
 # Agent City - Changelog
 
+## 2026-10-08 - Treasury + UI overhaul
+- Town Hall (Council) now stands at the center of the city as its hub: City Hall and the Council Chamber merged into one domed hall with a glowing beacon; the districts sit around it, and old links (#council, #cityhall) open #townhall
+- Neon streaks: when a role finishes a task, a thin trail in its color arcs from its building to Town Hall (about 2 s, at most 4 at once, recent ones replay on load, new ones appear live; off under reduced motion; toggle in Settings)
+- Treasury in plain language: lifetime tokens saved (~128k) and money saved (~$0.77 at the $6 per 1M token API list price, an estimate), cost per build, builds measured, this week's Grok Bot limit used vs plan, a savings trend, the biggest savings with links, and how every number is made; lifetime totals persist in costs.json
+- New UI: top bar with search (/ or Ctrl+K) to jump anywhere, a Dashboard (#dashboard), tabs in long panels, Settings (#settings: graphics, streaks, motion, labels, minimap), keyboard shortcut sheet (?), loading screen, one-time welcome card, toasts; phones get a compact bar and bottom-sheet panels
+- Look: crosswalks and curbs, textured grass, planters on the plaza, neon accents on the tallest towers, deeper night sky, bloom tuned per time of day; phones start in saver graphics and any device drops to saver if the frame rate stays low
+- Weekly pacing: tools/pace.py sizes every session from the latest real usage reading plus logged sessions and ad-hoc tasks (local only, numbers only)
+- Tests: pace, treasury, and UI smoke tests (static checks in CI; browser checks on desktop and phone sizes on the build box)
+
 ## 2026-10-08 - Overnight: deep links
 - Deep links: /agent-city/#market (any building id) or #role=tutor opens that panel and flies there; #overview returns to the skyline
 - The address bar follows whatever panel is open, so any view can be copied and shared; closing the panel clears it, and unknown links just open the city
