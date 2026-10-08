@@ -30,12 +30,12 @@ Legend: [x] done · [ ] todo · (W) wow factor · (U) useful
 - [x] USER REQUEST: UI overhaul (design system, top bar, search, dashboard, tabs, settings, shortcuts, loading, welcome card, phone layout), visual upgrade, neon streaks to Town Hall
 - [x] USER REQUEST: Town Hall (Council) at the center of the city: City Hall + Council Chamber merged into the hub; #council and #cityhall redirect
 - [x] 9. Search box: type a building or role, fly there and open it (/ or Ctrl+K)
+- [x] 2. Morning Brief kiosk in the plaza: Courier + Timekeeper notes combined (local copy only; public empty state)
+- [x] 3. Study Hall answer box: local check (numeric for expressions in x) before the solution unlocks
+- [x] 4. Prompt linter in the Prompt Workshop: paste a prompt, see what's missing (goal, context, done-when, output)
 - [x] 29. Mobile/touch: tap to open, bottom-sheet panels, saver graphics on phones (virtual joystick moved to #46)
 
 ## Backlog (top = next)
-2. [ ] (U) Morning-brief kiosk in the plaza: Courier + Timekeeper notes combined (local copy only)
-3. [ ] (U) Study Hall answer box: type your answer, get a local check before the solution unlocks
-4. [ ] (U) Prompt linter in the Prompt Workshop: paste a prompt, see what's missing (goal, context, done-when, format)
 5. [ ] (U) Review Board checklist view: the Critic's pass/fail checks as icons per role
 6. [ ] (W) Agents follow sidewalks/crosswalks; idle animations by role (reading, typing, hammering)
 7. [ ] (U) Notice Board: dismiss/snooze notices locally (localStorage)
@@ -74,3 +74,10 @@ Legend: [x] done · [ ] todo · (W) wow factor · (U) useful
 45. [ ] (W) Streak replay: a dashboard timeline that replays today's neon streaks in order, with the action under each
 46. [ ] (U) Phone walk mode: virtual joystick + drag to look
 47. [ ] (U) Treasury: cost per role, once the Meter Reader tags pushed files by the role that changed them
+48. [ ] (U) Study Hall practice set: the last 5 Tutor problems, each with its own answer box; results kept in localStorage (feeds the streak tracker, #20)
+49. [ ] (U) Answer checker for Econ: numbers with units and a tolerance (e.g. elasticity -1.2, price $14), and CS outputs compared line by line
+50. [ ] (W) Morning Brief kiosk sign glows warm from 6 to 10 AM Denver time and dims after the brief is opened
+51. [ ] (U) Morning Brief: free study blocks from the Timekeeper become one-click 'study Calc I at 12:00' prompts (local only)
+52. [ ] (U) Inspector live-version check: compare the live site's City.version with the last published one at the start of every session and finish any stalled publish first
+53. [ ] (U) HUD polish: the top-left status chips overlap each other at some widths; wrap or merge them
+54. [ ] (U) Prompt linter 'Fix it for me': a copy button that asks Grok Bot to rewrite the prompt with the missing parts filled from context

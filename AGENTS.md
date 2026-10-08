@@ -62,6 +62,7 @@ in the same commit: a stale manifest makes owners' updaters reject the new files
 - UI: `hud.js` (top bar, search, dashboard and settings views via `City.registerView`, shortcuts, welcome card, toasts; settings in localStorage),
   `visuals.js` (crosswalks, textures, neon accents, time-of-day bloom, automatic quality), `streaks.js` (`City.streaks.fire(roleId)`: neon trail from the
   role's building to Town Hall, max 4 at once, off under reduced motion). Panels with 3+ `<h4>` sections get tabs automatically.
+- Tutor entries carry `details` (problem), `solution`, and a short `answer` (final expression in x when possible) plus optional `accept` (other accepted forms) for the Study Hall's local check (`City.checkAnswer` in `js/buildings/studyhall.js`).
 - `data.js` is GENERATED: `window.CITY_DATA = {generatedAt, skills, agents, changelog, finds, activity, totals, routines, ideals, costs, news, treasury, gb}`. Never hand-edit.
 - `private.js` (from `private.json`) is gitignored and only requested on file:// or localhost.
 
@@ -75,3 +76,4 @@ sender names, and amounts never go into pushed files; push only changed files; b
 
 ## Never break the live site
 The site at https://brandocalricia.github.io/agent-city/ must keep working while work is in progress. Build and verify locally first; publish all changed files in one commit. If a push must be split, push new files first and the files that reference them (index.html, js/manifest.js, data.js) last. After publishing, load the live URL and confirm no failed requests.
+Large publishes (more than a few files, or anything a single call can't carry) go through the `publish` branch: create it from main, push the changed files in any number of commits (the live site only serves main), and put `[publish]` in the LAST commit message. `.github/workflows/publish.yml` then runs the tests, refuses if main changed meanwhile in files the branch differs on, regenerates data.js and the Grok Build feed (off the box, build_data.py keeps the committed data.js's skills, agents and routines), moves main to the branch's files in ONE commit, asks Pages to rebuild, and deletes the branch. So a publish-branch session pushes data.js only when skills, agents or routines changed. A session that stops partway leaves main untouched. At the start of each session, compare the live `City.version` with the local one and finish any stalled publish first.

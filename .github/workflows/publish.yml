@@ -1,0 +1,50 @@
+# Publishes a fully pushed `publish` branch to main in ONE commit, so a session that stops partway never leaves the live site half-updated.
+# Sessions: create branch `publish` from main, push the changed files in any number of commits, and put "[publish]" in the LAST commit message.
+# data.js and grok-build/suggestions.md + manifest.txt are regenerated here, so sessions only push data.js when skills, agents or routines changed.
+name: publish
+on:
+  push:
+    branches: [publish]
+permissions:
+  contents: write
+  pages: write
+concurrency:
+  group: publish
+  cancel-in-progress: false
+jobs:
+  publish:
+    if: contains(github.event.head_commit.message, '[publish]')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Regenerate data.js and the Grok Build feed (skills, agents and routines carry over from the committed data.js)
+        run: |
+          set -euo pipefail
+          git config user.name "agent-city-publish"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          python3 build_data.py
+          git add data.js grok-build/suggestions.md grok-build/manifest.txt
+          git diff --cached --quiet || git commit -q -m "Regenerate data.js and the Grok Build feed"
+      - name: Tests (nothing is published if they fail)
+        run: python3 -m unittest discover -s tests
+      - name: Move main to this branch's files in one commit
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          git fetch origin main
+          base=$(git merge-base origin/main HEAD)
+          changed=$(git diff --name-only "$base" origin/main)
+          # Guard: never overwrite work that reached main after this branch started.
+          if [ -n "$changed" ] && ! git diff --quiet origin/main HEAD -- $changed; then
+            echo "main changed since the publish branch started; refusing to overwrite:"
+            git diff --stat origin/main HEAD -- $changed
+            exit 1
+          fi
+          msg=$(git log -1 --format=%B "$GITHUB_SHA" | sed 's/ *\[publish\]//')
+          commit=$(git commit-tree "HEAD^{tree}" -p origin/main -m "$msg")
+          git push origin "$commit:refs/heads/main"
+          gh api -X POST "repos/$GITHUB_REPOSITORY/pages/builds" >/dev/null || echo "Pages build request not needed or not allowed"
+          git push origin --delete publish || true

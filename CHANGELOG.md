@@ -1,5 +1,18 @@
 # Agent City - Changelog
 
+## 2026-10-08 - Early morning: live site catch-up + prompt linter
+- Fixed: the live site was still on an older version because the last two publishes stopped partway; the UI overhaul, the Morning Brief kiosk, and the Study Hall answer box are now live
+- Publishing now goes through a `publish` branch: files are pushed there in pieces, then a GitHub Action runs the tests and moves the live site to all of them in one commit, so a publish that stops partway can never leave the site half-updated (Quick Council YES 9/10)
+- Prompt linter in the Prompt Workshop (#promptworkshop): paste a prompt and see which of the four parts agents rely on (goal, context, done when, output) are missing, then copy it with the missing lines added; it checks on your device only
+- Quick Council: 2 YES verdicts; 3 new roadmap ideas
+
+## 2026-10-08 - Overnight: morning brief + answer box
+- Morning Brief kiosk on the plaza (opposite the Notice Board, #kiosk): today's calendar notes and inbox flags in one panel on your local copy, with a note-count sign, a "not refreshed yet today" hint, and a copy-ready "plan my day" prompt; the public site shows a clean empty state and private notes never leave private.js
+- Study Hall answer box (#studyhall): type your answer and it is checked on your device (expressions in x are compared numerically, so equivalent forms count); the solution unlocks after your first try. Tutor problems now carry a short answer key
+- Fixed: the live site was still on the pre-overhaul version because the last publish stopped partway; the full UI overhaul is now live
+- Pacing: the fallback schedule now matches the real every-3-hours routine (8 sessions a day), with a test
+- Quick Council: 3 YES verdicts (publish the overhaul, kiosk placement, answer keys); 4 new roadmap ideas
+
 ## 2026-10-08 - Treasury + UI overhaul
 - Town Hall (Council) now stands at the center of the city as its hub: City Hall and the Council Chamber merged into one domed hall with a glowing beacon; the districts sit around it, and old links (#council, #cityhall) open #townhall
 - Neon streaks: when a role finishes a task, a thin trail in its color arcs from its building to Town Hall (about 2 s, at most 4 at once, recent ones replay on load, new ones appear live; off under reduced motion; toggle in Settings)

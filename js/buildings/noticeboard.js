@@ -1,6 +1,6 @@
 // Notice Board (plaza): what needs you, plus the latest news. Private notices only appear on the local copy.
 City.building({
-  id: 'noticeboard', name: 'Notice Board', icon: '📌', pos: [-13, 13], rot: -Math.PI / 4, small: true,
+  id: 'noticeboard', name: 'Notice Board', icon: '📌', pos: [-14.5, 14.5], rot: -Math.PI / 4, small: true,
   sub: () => { const n = City.needsYou().length + ((City.PRIV && City.PRIV.notices) || []).length; return n ? `${n} need you` : 'all clear'; },
   build(g) {
     const C = City, y0 = C.BASE, n = C.needsYou().length + ((C.PRIV && C.PRIV.notices) || []).length;

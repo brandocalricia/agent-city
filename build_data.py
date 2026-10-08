@@ -382,6 +382,20 @@ def write_private():
     return True
 
 
+def previous_box_state():
+    """Off the Grok box (e.g. the publish Action), keep the skills/agents/routines of the committed data.js
+    instead of blanking them, so CI can regenerate data.js and sessions never have to push it (Optimizer, 2026-10-08)."""
+    if os.path.isdir(ROOT):
+        return None
+    try:
+        with open(os.path.join(HERE, "data.js"), encoding="utf-8") as f:
+            line = next(l for l in f if l.startswith("window.CITY_DATA = "))
+        old = json.loads(line[len("window.CITY_DATA = "):].rstrip().rstrip(";"))
+        return {k: old.get(k) or [] for k in ("skills", "agents", "routines")}
+    except (OSError, StopIteration, ValueError):
+        return None
+
+
 def main():
     errs = gb_errors() + news_errors()
     if errs:  # stop before writing anything, so a session can never publish a malformed feed
@@ -403,6 +417,9 @@ def main():
         "news": load_news(),
         "treasury": load_treasury(acts, capped),
     }
+    prev = previous_box_state()
+    if prev:
+        data.update(prev)
     items = gb_items()
     data["gb"] = [{k: i[k] for k in ("id", "change", "target", "size", "date", "checks", "tests")} for i in items]
     write_gb_suggestions(acts, items, data["generatedAt"])
