@@ -32,7 +32,8 @@ OVER_PACE_SKIP = 40.0      # points above pace: skip (log a one-line skip)
 
 
 def parse_t(s):
-    return dt.datetime.strptime(str(s)[:16], "%Y-%m-%dT%H:%M")
+    # Tolerate "YYYY-MM-DD HH:MM" and trailing seconds/offsets (local time assumed).
+    return dt.datetime.strptime(str(s).strip().replace(" ", "T", 1)[:16], "%Y-%m-%dT%H:%M")
 
 
 def fmt(t):

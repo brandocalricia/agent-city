@@ -19,6 +19,17 @@ def budget(**kw):
 
 
 class Pace(unittest.TestCase):
+    def test_parse_t_accepts_space_seconds_and_offsets(self):
+        want = dt.datetime(2026, 10, 8, 22, 55)
+        for raw in ("2026-10-08T22:55", "2026-10-08 22:55", "2026-10-08T22:55:07-06:00", " 2026-10-08 22:55:00 "):
+            self.assertEqual(T(raw), want, raw)
+
+    def test_mixed_timestamp_formats_do_not_break_pacing(self):
+        b = budget(sessions=[{"at": "2026-10-08 00:10", "tier": "S", "what": "x"}],
+                   adhoc=[{"at": "2026-10-08T00:20:00-06:00", "tier": "M", "task": "x"}])
+        r = pace.compute(b, T("2026-10-08T01:15"))
+        self.assertEqual(r["logged_since_reading"], 2)
+
     def test_sums_sessions_and_adhoc_after_latest_reading_only(self):
         b = budget(sessions=[{"at": "2026-10-07T20:00", "tier": "L", "what": "before reading"},
                              {"at": "2026-10-07T23:56", "tier": "S", "what": "x"}],

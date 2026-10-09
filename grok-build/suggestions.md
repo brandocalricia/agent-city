@@ -1,6 +1,6 @@
 # Agent City suggestions for Grok Build
 
-Generated 2026-10-09 05:07 UTC by build_data.py; refreshed every city session. Read by the `city-apply` skill.
+Generated 2026-10-09 07:08 UTC by build_data.py; refreshed every city session. Read by the `city-apply` skill.
 Only the Apply queue is actionable. Each id is processed once; local state is `~/.grok/agent-city/applied.json`.
 Every item carries checks (run before and after; `$ ` lines are commands) and tests (must pass). Items without them are skipped.
 
