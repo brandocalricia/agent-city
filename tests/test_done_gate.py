@@ -87,6 +87,10 @@ def main():
     other = "The dashboard is done and everything passed."
     assert approve_worker_done("b9mods1", other) is False
     print("PASS a non-b9recur bad draft is refused")
+    assert approve_worker_done("b9stats1", "PASS total 8565050\n") is False
+    print("PASS total 8565050 with no as-of is refused")
+    assert approve_worker_done("b9stats1", "as of now\nPASS total 8565050\n") is False
+    print("PASS as of now is refused")
 
     posted = []
 
@@ -108,6 +112,17 @@ def main():
     assert worker_cannot_post(command, {"GH_TOKEN": "nope"}, prompt) is False
     assert worker_cannot_post(command + ["gh", "api"], clean, prompt) is False
     print("PASS a worker process has no Channel token and no post call")
+
+    import runner_step
+
+    bad_calls = []
+    runner_step.post_raw = lambda body, queue=True: bad_calls.append(body) or True
+    assert runner_step.post_worker_done("b9stats1", "PASS total 8565050\n", "gdb9stats1") is False
+    assert bad_calls == []
+    print("PASS the runner post path makes zero calls for a bad draft")
+    cmd, env, prompt = runner_step.worker_launch({"id": "b9testgate", "body": "ping"})
+    assert worker_cannot_post(cmd, env, prompt) is True
+    print("PASS the real worker launch has no Channel token and no post call")
 
 
 if __name__ == "__main__":

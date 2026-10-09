@@ -1,6 +1,8 @@
-"""Pure DONE and refusal gates for the Agent City runner. No I/O."""
+"""DONE and refusal gates for the Agent City runner."""
 
 import re
+import subprocess
+from pathlib import Path
 
 SHA_RE = re.compile(r"\b[0-9a-f]{7,40}\b", re.IGNORECASE)
 PASS_LINE_RE = re.compile(r"(?m)^[ \t]*PASS\s+\S")
@@ -8,10 +10,44 @@ ASOF_RE = re.compile(r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z")
 CHANNEL_TOKEN_KEYS = {"GH_TOKEN", "GITHUB_TOKEN", "GH_ENTERPRISE_TOKEN"}
 
 
+def repo_candidates():
+    """Repos whose git objects can confirm a SHA. No network."""
+    found = []
+    pointer = Path(__file__).resolve().parent / "repo.path"
+    try:
+        line = pointer.read_text().strip()
+    except OSError:
+        line = ""
+    if line:
+        found.append(line)
+    here = Path(__file__).resolve()
+    for parent in here.parents:
+        git = parent / ".git"
+        if git.exists():
+            found.append(str(parent))
+            break
+    return found
+
+
+def confirmed_sha(text):
+    """True only when git cat-file recognizes a SHA in the text."""
+    for sha in SHA_RE.findall(text or ""):
+        for repo in repo_candidates():
+            proc = subprocess.run(
+                ["git", "-C", repo, "cat-file", "-t", sha],
+                capture_output=True,
+                text=True,
+            )
+            kind = (proc.stdout or "").strip()
+            if proc.returncode == 0 and kind in {"commit", "blob", "tree", "tag"}:
+                return True
+    return False
+
+
 def recur_done_evidence(text):
-    """A b9recur DONE needs a commit SHA and a pasted PASS line."""
+    """A b9recur DONE needs a real commit SHA and a pasted PASS line."""
     body = text or ""
-    return bool(SHA_RE.search(body)) and bool(PASS_LINE_RE.search(body))
+    return confirmed_sha(body) and bool(PASS_LINE_RE.search(body))
 
 
 def blocked_has_lane_detail(text):
@@ -83,14 +119,10 @@ def strike_decision(fail_count, error, log_tail_text, now):
 
 
 def has_reading(text):
-    """A commit SHA or a live reading with an as-of time."""
-    body = text or ""
-    if SHA_RE.search(body):
+    """A git-confirmed SHA, or an ISO as-of timestamp. Loose phrases do not count."""
+    if ASOF_RE.search(text or ""):
         return True
-    low = body.lower()
-    if "as-of" in low or "as of " in low:
-        return True
-    return bool(ASOF_RE.search(body))
+    return confirmed_sha(text)
 
 
 def approve_worker_done(task_id, report):
