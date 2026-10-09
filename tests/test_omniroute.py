@@ -83,8 +83,8 @@ class Omniroute(unittest.TestCase):
         path = os.path.join(ROOT, "data", "omniroute.json")
         order = json.loads(open(path, encoding="utf-8").read())["routing"]["order"]
         names = [part.strip() for part in order.split(",")]
-        self.assertEqual(names[0], "gemini")
-        self.assertEqual(names[-1], "llama.cpp")
+        self.assertEqual(names[0], "cohere")
+        self.assertEqual(names[-1], "cloudflare-ai")
         self.assertIn("groq", names)
         db = os.path.expanduser("~/.omniroute/storage.sqlite")
         if not os.path.exists(db):
