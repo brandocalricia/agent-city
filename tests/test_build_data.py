@@ -226,7 +226,7 @@ class RepoState(unittest.TestCase):
     def test_data_js_parses(self):
         txt = open(os.path.join(ROOT, "data.js"), encoding="utf-8").read()
         data = json.loads(txt.split("window.CITY_DATA = ", 1)[1].rstrip().rstrip(";"))
-        for k in ("skills", "activity", "changelog", "gb", "costs", "totals", "news"):
+        for k in ("skills", "activity", "changelog", "gb", "costs", "totals", "news", "omniroute"):
             self.assertIn(k, data)
 
 

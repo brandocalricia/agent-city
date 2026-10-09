@@ -1,8 +1,8 @@
-// Treasury: plain-language cost dashboard (lifetime savings, cost per build, weekly limit vs plan, trend, biggest savings).
-// All figures come from data.js treasury (tools/treasury.py over costs.json); estimates are always labeled.
+// Treasury Savings Hub: costs.json ledger plus the OmniRoute snapshot (free vs Grok lanes). Estimates labeled.
 City.building({
-  id: 'treasury', name: 'Treasury', icon: '🧾', block: [0, 2], role: 'auditor', small: true,
-  sub: () => { const t = (City.DATA.treasury || {}).lifetime; return t && t.saved_tokens ? `~${Math.round(t.saved_tokens / 1000)}k tokens saved · 3 cost agents` : 'cost ledger · 3 cost agents'; },
+  id: 'treasury', name: 'Treasury Savings Hub', icon: '🧾', block: [0, 2], role: 'auditor', small: true,
+  sub: () => { const t = (City.DATA.treasury || {}).lifetime, o = City.DATA.omniroute || {}, n = ((o.lanes || {}).local || 0) + ((o.lanes || {}).remote_free || 0);
+    return t && t.saved_tokens ? `savings hub · ~${Math.round(t.saved_tokens / 1000)}k saved · ${n} free lane` : 'savings hub · cost ledger'; },
   build(g) {
     const C = City, y0 = C.BASE;
     C.box(g, 24, 1, 16, C.M.stone, 0, y0 + 0.5, -1);
@@ -17,6 +17,11 @@ City.building({
   },
   panel() {
     const C = City, { esc } = C, K = C.DATA.costs || {}, L = K.ledger || [], T = C.DATA.treasury || {}, LT = T.lifetime || {}, W = T.week;
+    const O = C.DATA.omniroute || {}, lanes = O.lanes || {}, last = O.last || {}, cmp = O.compression || {}, S = O.swarm || {};
+    const freeLanes = (lanes.local || 0) + (lanes.remote_free || 0), grokLanes = lanes.grok || 0;
+    const lastName = String(last.provider || ''), lastIsFree = lastName && lastName.toLowerCase() !== 'grok';
+    const freeShare = lastName ? (lastIsFree ? '100%' : '0%') : '–';
+    const grokPct = freeLanes ? 0 : 100;
     const k = n => n == null ? '–' : n >= 1e6 ? (n / 1e6).toFixed(2) + 'M' : n >= 1e4 ? Math.round(n / 1e3) + 'k' : n >= 1e3 ? (n / 1e3).toFixed(1) + 'k' : String(n);
     const usd = n => n == null ? 'n/a' : '$' + (n < 1 ? n.toFixed(2) : n.toFixed(2));
     const price = (T.price || {}).usd_per_mtok;
@@ -27,13 +32,17 @@ City.building({
     const latest = ['auditor', 'meter', 'optimizer'].map(id => { const a = C.latestFor(id), r = C.roleById[id]; return C.card(`${r.icon} ${r.name}`, esc(a ? `${a.date}: ${a.action}` : (r.idle || ''))); }).join('');
     const max2 = Math.max(1, ...L.map(e => e.kb_pushed || 0));
     const bar = e => `<div class="m" style="display:flex;gap:6px;align-items:center"><span style="min-width:128px">${esc(e.session || e.date)}</span><span style="display:inline-block;height:9px;border-radius:4px;background:#ffb36b;width:${Math.round(130 * (e.kb_pushed || 0) / max2)}px"></span><span>${esc(e.kb_pushed)} KB · ~${k(e.est_tokens)} tok</span></div>`;
-    return `<h2>🧾 Treasury</h2><p class="sub">Where the city's tokens go, and what its cost agents have saved. Numbers come from the Meter Reader's measured ledger. Tokens are estimates (file bytes ÷ 4); dollars are estimates too.</p>`
+    return `<h2>🧾 Treasury Savings Hub</h2><p class="sub">Where the city's tokens go, what its cost agents have saved, and which lanes are free. Ledger numbers come from the Meter Reader (bytes ÷ 4, estimates). Routing numbers come from the OmniRoute snapshot at the <a href="#" data-building="routerexchange">🔀 Router Exchange</a>.</p>`
       + `<div class="big">`
       + tile('~' + k(LT.saved_tokens), 'tokens saved, lifetime', 'what the city did not have to write thanks to its savings (est.)')
+      + tile(freeShare, 'share of work on free models', lastName ? `of 1 measured routed call (${esc(lastName)})` : 'no routed call measured')
+      + tile(`${freeLanes} / ${grokLanes}`, 'lanes on free vs Grok', `${freeLanes} free · ${grokLanes} Grok · fallback ${grokPct}%`)
       + tile(usd(LT.saved_usd), 'money saved (est.)', price ? `at $${price} per million tokens, API list price` : 'no price set')
       + tile(LT.sessions ?? '–', 'builds measured', `${(C.DATA.totals || {}).sessions || 0} sessions logged in total`)
       + tile('~' + k(LT.avg_tokens_per_build), 'cost per build', `≈ ${usd(LT.avg_usd_per_build)} each, average (est.)`)
       + `</div>`
+      + `<h4>OmniRoute</h4>` + (O.version ? `<div class="card"><div class="t">${esc(O.version)} · ${esc(cmp.mode || '–')} · ${esc(O.mode || '')} · w${esc(String(O.workers ?? '–'))}</div><div class="m">${last.provider ? `Last: ${esc(last.model || last.provider)} · ${esc(last.reason || last.strategy || '')} · ${last.in ?? '–'} in / ${last.out ?? '–'} out · cost ${last.cost ?? '–'}` : 'No routing decision measured'}. Reset: ${esc(O.next_reset || 'none')}.</div></div>` : C.empty('No OmniRoute snapshot', 'data/omniroute.json is missing; the hub still shows the cost ledger.'))
+      + `<h4>Swarm</h4><div class="big">` + tile(String(freeLanes), 'free lanes', `${lanes.local || 0} local · ${lanes.remote_free || 0} remote`) + tile(String(grokPct) + '%', 'Grok fallback', 'only when every free pool is out') + tile(String(S.started ?? 0), 'workers started', 'print a plan only') + `</div>`
       + `<h4>This week's Grok Bot limit</h4>`
       + (W ? `<div class="card"><div class="t">${W.est_used_pct}% used · plan ${W.pace_line_pct}% by now</div><div class="meter" role="img" aria-label="${W.est_used_pct}% used of the weekly limit"><i style="width:${Math.min(100, W.est_used_pct)}%"></i><b style="left:${Math.min(100, W.pace_line_pct)}%" title="plan by now"></b></div>`
           + `<div class="m">Latest real reading ${W.reading_at ? `${W.reading_pct}% at ${esc(W.reading_at.replace('T', ' '))}` : 'none this week'}, plus logged work since. The yellow mark is a straight line to the ${W.target_pct}% target by the reset (${esc(reset)} MT). ${W.sessions_left} sessions left, each sized from this (next: ${esc(W.recommend)}). As of ${esc(W.now.replace('T', ' '))} MT.</div></div>`

@@ -16,7 +16,7 @@ def read(*p):
 class Static(unittest.TestCase):
     def test_manifest_files_exist_and_new_ui_files_load_before_main(self):
         m = read("js", "manifest.js")
-        files = re.findall(r"'(js/[\w/]+\.js)'", m) + [f"js/buildings/{b}.js" for b in re.findall(r"'(\w+)'", m.split("...[")[1].split("]")[0])]
+        files = re.findall(r"'(js/[\w/-]+\.js)'", m) + [f"js/buildings/{b}.js" for b in re.findall(r"'(\w+)'", m.split("...[")[1].split("]")[0])]
         for f in files:
             self.assertTrue(os.path.exists(os.path.join(ROOT, f)), f)
         order = re.findall(r"'(js/\w+\.js)'", m)

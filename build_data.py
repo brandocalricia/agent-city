@@ -13,6 +13,8 @@ Sources:
     a malformed gb entry stops the build so the session cannot publish) + grok-build/manifest.txt (sha256 per file)
   - ./costs.json                                (Meter Reader ledger + Optimizer savings, shown in the Treasury;
     tools/treasury.py adds lifetime totals and, on the local copy only, weekly pacing numbers from budget.json via tools/pace.py)
+  - ./data/omniroute.json                       (sanitized OmniRoute snapshot for the Router Exchange and Treasury Savings Hub;
+    missing file -> {}; never publish budget.json)
   - ./news.json                                 (Reporter's morning digest: [{date,title,url,source,why,tag,for?}], validated;
     stories older than NEWS_KEEP_DAYS drop out of data.js; `for` routes a story to the Council, Scout, Prompt Smith, Tutor, or GB)
   - ./private.json (gitignored) -> ./private.js (gitignored): Courier/Timekeeper notes, local copy only
@@ -361,6 +363,11 @@ def load_costs():
     return {"ledger": [x for x in c.get("ledger", []) if isinstance(x, dict)][-12:], "savings": [x for x in c.get("savings", []) if isinstance(x, dict)]}
 
 
+def load_omniroute():
+    o = load_json(os.path.join("data", "omniroute.json"), {})
+    return o if isinstance(o, dict) else {}
+
+
 def load_treasury(acts, capped):
     import treasury
     c = load_json("costs.json", {})
@@ -416,6 +423,7 @@ def main():
         "costs": load_costs(),
         "news": load_news(),
         "treasury": load_treasury(acts, capped),
+        "omniroute": load_omniroute(),
     }
     prev = previous_box_state()
     if prev:

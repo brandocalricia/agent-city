@@ -1,0 +1,143 @@
+{
+  "version": "3.8.51",
+  "compression": {
+    "mode": "stacked",
+    "pipeline": ["rtk", "caveman"],
+    "combo": "rtk then caveman",
+    "caveman_keeps_code": true,
+    "source": "default"
+  },
+  "health": "up",
+  "mode": "full",
+  "workers": 3,
+  "next_reset": "none",
+  "providers": [
+    {
+      "name": "Cerebras",
+      "state": "up",
+      "chat": "up",
+      "priority": 1,
+      "free_models": 2,
+      "pool_models": 1,
+      "model": "qwen-3.8-27b",
+      "note": "chat pass on qwen-3.8-27b at cost 0. gpt-oss-120b also answers; its cost estimate was non-zero, so it stays out of the default pool. Two catalog ids 404 and are excluded."
+    },
+    {
+      "name": "NVIDIA NIM",
+      "state": "up",
+      "chat": "up",
+      "priority": 2,
+      "free_models": 11,
+      "note": "11 chat models in the pool. 11 non-chat models excluded. Super chat pass at cost 0."
+    },
+    {
+      "name": "OpenRouter",
+      "state": "up",
+      "chat": "up",
+      "priority": 3,
+      "free_models": 14,
+      "note": "14 free chat models in the pool. Paid catalog models are not in the pool. One free model was cooling down; a different free model passed at cost 0."
+    },
+    {
+      "name": "llama.cpp",
+      "state": "optional",
+      "chat": "up",
+      "priority": 8,
+      "model": "Qwen3.5-4B-Q4_K_M",
+      "context_window": 16384,
+      "note": "already running, so it was not restarted. Draft only. A harness turn of about 17909 does not fit."
+    },
+    {
+      "name": "OpenCode Free",
+      "state": "inactive",
+      "chat": "down",
+      "priority": 90,
+      "note": "chat disabled. Free tier does not answer outside OpenCode."
+    },
+    {
+      "name": "AI Horde",
+      "state": "inactive",
+      "chat": "down",
+      "priority": 91,
+      "note": "image models, not a chat lane"
+    },
+    {
+      "name": "Grok",
+      "state": "fallback",
+      "chat": "paced",
+      "note": "main session and high-stakes review stay here. Last resort after one stronger free retry."
+    }
+  ],
+  "last": {
+    "strategy": "auto",
+    "task": "coding",
+    "provider": "cerebras",
+    "model": "qwen-3.8-27b",
+    "reason": "priority 1, 65536 context fits, cost 0, quality-first task fit",
+    "valid": false,
+    "latency_ms": 269,
+    "in": 208,
+    "out": 80,
+    "cost": 0,
+    "compression": "stacked; source=default"
+  },
+  "retry": {
+    "task": "coding",
+    "provider": "nvidia",
+    "model": "nemotron-3-super-120b-a12b",
+    "reason": "first answer had no code; one stronger free retry",
+    "valid": true,
+    "latency_ms": 1046,
+    "in": 39,
+    "out": 54,
+    "cost": 0
+  },
+  "draft": {
+    "provider": "cerebras",
+    "model": "qwen-3.8-27b",
+    "valid": false,
+    "retry_provider": "openrouter",
+    "retry_model": "nemotron-3-super-120b-a12b:free",
+    "retry_valid": true,
+    "latency_ms": 465,
+    "in": 29,
+    "out": 26,
+    "cost": 0
+  },
+  "lanes": {
+    "local": 1,
+    "remote_free": 3,
+    "grok": 0
+  },
+  "quota": {
+    "mode": "full",
+    "workers": 3,
+    "next_reset": "none",
+    "full_when_healthy_at_least": 2,
+    "shifted_when_healthy": 1,
+    "minimal_when_healthy": 0
+  },
+  "routing": {
+    "coding": "auto/coding quality-first",
+    "draft": "auto/offline offline-friendly",
+    "high_stakes": "grok",
+    "retry": "one stronger free model, then paced Grok"
+  },
+  "routed_free": 20817,
+  "measured_turn": {
+    "provider": "cerebras",
+    "model": "qwen-3.8-27b",
+    "in": 17947,
+    "out": 74,
+    "free_share_pct": 100
+  },
+  "swarm": {
+    "started": 0,
+    "mode": "full",
+    "workers": 3,
+    "one_lane_per_pool": true,
+    "probe_minutes": 3,
+    "bulk": "auto/offline",
+    "code": "auto/coding"
+  }
+}
