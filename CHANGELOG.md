@@ -1,5 +1,12 @@
 # Agent City - Changelog
 
+## 2026-10-08 - Evening: Daily Council + owner-request queue + privacy gate
+- Daily Full Council ranked next steps: R-006 security, R-002 Useful Index, R-005 evals, then Metropolis (R-001) and Playbook/Launchpad/Campus merge; Quick Councils approved R-008..R-009 and R-011..R-016 (phased, original art)
+- All 15 queued owner requests set to approved with council records (local requests.json); nothing built tonight (pace minimal, +22 pts over)
+- Optimizer: `DATA_CHANGELOG_CAP=15` in build_data.py; `requests.json` gitignored; `tools/privacy_check.py` + tests (R-006 start)
+- Meter Reader logged OmniRoute publish `1a937e5` (141.9 KB); Reporter filed 1 agent-security story; Critic PASS on live Seamless/Private
+- Site version `2026-10-08s` (data + tests + privacy tooling; no Builder feature increment)
+
 ## 2026-10-08 - Channel PR + thread-only link (no webhook required)
 - Pacing counts ad-hoc from every Grok Bot (e.g. Q1 DU Tutor / Math Tutor `source: math-tutor`); `pace.py` prints sessions / Agent City ad-hoc / math-tutor / other (reading drift); evening session report includes that breakdown
 - Message channel is now an open **pull request** titled Channel in `agent-city-comms` (not an issue), so Agent City's PR-comment listener wakes instantly; `comms.py` finds it by title or creates branch `channel` + `channel/README.md` + `gh pr create`

@@ -68,6 +68,19 @@
    "saved_kb": 79.8,
    "saved_tokens": 20400,
    "note": "Split into 12 commits because large multi-file pushes were truncated; data.js went up 4 times (73 KB of the total)."
+  },
+  {
+   "date": "2026-10-08",
+   "session": "OmniRoute Router Exchange + Savings Hub (GB publish)",
+   "commit": "1a937e5",
+   "files_pushed": 13,
+   "kb_pushed": 141.9,
+   "est_tokens": 36300,
+   "top": "data.js 65.9 KB, build_data.py 21.5 KB, tests/test_build_data.py 11.4 KB",
+   "saved_kb": 149.4,
+   "saved_tokens": 38300,
+   "note": "Measured at 1a937e5 via git show byte sizes. Frontend split still saving: ~162.6 KB whole front end vs 13.2 KB front-end bytes in this push.",
+   "saved_method": "Split saving (estimate): whole front end (index+css+js) minus front-end bytes in this commit."
   }
  ],
  "savings": [
@@ -105,6 +118,15 @@
    "status": "sent to Grok Build",
    "est_saving": "depends on his sessions; not measured",
    "evidence": "Context from whole-file reads is the main avoidable input cost in coding sessions"
+  },
+  {
+   "date": "2026-10-08",
+   "by": "optimizer",
+   "change": "data.js changelog capped at newest 15 sections; requests.json gitignored; tools/privacy_check.py + tests gate emails/amounts before publish (R-006 start)",
+   "status": "implemented",
+   "est_saving": "Changelog cap: ~1 KB per older section kept out of every data.js regen as CHANGELOG grows; privacy_check avoids costly leak+revert cycles",
+   "evidence": "DATA_CHANGELOG_CAP=15 in build_data.py; .gitignore + tests/test_privacy_check.py",
+   "tokens_saved": 0
   }
  ],
  "saved_method": "Split saving (estimate): before the Catch-up run the whole app was one index.html, so any front-end change re-pushed all of it. Per session: size of the whole front end (index.html + css + js) at that session's last front-end commit, minus the front-end bytes actually pushed; 0 when no front-end file changed.",

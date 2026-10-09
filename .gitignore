@@ -4,3 +4,4 @@ screenshots/
 __pycache__/
 budget.json
 channel-seen.json
+requests.json

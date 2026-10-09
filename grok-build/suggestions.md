@@ -1,6 +1,6 @@
 # Agent City suggestions for Grok Build
 
-Generated 2026-10-09 02:13 UTC by build_data.py; refreshed every city session. Read by the `city-apply` skill.
+Generated 2026-10-09 03:09 UTC by build_data.py; refreshed every city session. Read by the `city-apply` skill.
 Only the Apply queue is actionable. Each id is processed once; local state is `~/.grok/agent-city/applied.json`.
 Every item carries checks (run before and after; `$ ` lines are commands) and tests (must pass). Items without them are skipped.
 
@@ -38,11 +38,11 @@ Every item carries checks (run before and after; `$ ` lines are commands) and te
 
 ## Next best steps for the city (context)
 
-1. (U) Review Board checklist view: the Critic's pass/fail checks as icons per role
-2. (W) Agents follow sidewalks/crosswalks; idle animations by role (reading, typing, hammering)
-3. (U) Notice Board: dismiss/snooze notices locally (localStorage)
-4. (W) Weather: rain/snow toggle (snow for Denver winters)
-5. (U) Market: dim stale finds (>30 days) and tag finds by class/topic with filters
+1. (U) Wire privacy_check.py into publish.yml (and document in session skill) so every [publish] fails closed on email/amount hits
+2. (U) Session heartbeat JSON (local): last start/finish/ok written each session; Notice Board surfaces a missing heartbeat (feeds R-008)
+3. (U) Review Board checklist view: the Critic's pass/fail checks as icons per role
+4. (W) Agents follow sidewalks/crosswalks; idle animations by role (reading, typing, hammering)
+5. (U) Notice Board: dismiss/snooze notices l
 
 ## Newsroom: recent news for Grok Build (context, not actionable)
 
