@@ -29,9 +29,18 @@ def repo_candidates():
     return found
 
 
+def sha_worth_lookup(sha):
+    """A short all-digit string is not a commit. Look up a letter or 12+ characters."""
+    if len(sha) >= 12:
+        return True
+    return any(ch in "abcdefABCDEF" for ch in sha)
+
+
 def confirmed_sha(text):
     """True only when git cat-file recognizes a SHA in the text."""
     for sha in SHA_RE.findall(text or ""):
+        if not sha_worth_lookup(sha):
+            continue
         for repo in repo_candidates():
             proc = subprocess.run(
                 ["git", "-C", repo, "cat-file", "-t", sha],

@@ -740,12 +740,15 @@ def run_grok(task, allow_grok_retry=True):
 
 
 def worker_env(base):
-    """The worker process does not receive a Channel token."""
+    """The worker process cannot post. No Channel token, and gh has no login."""
     env = dict(base)
     for key in list(env):
         upper = str(key).upper()
         if upper in CHANNEL_TOKEN_KEYS or ("GITHUB" in upper and "TOKEN" in upper):
             env.pop(key, None)
+    empty = ROOT / "empty-gh"
+    empty.mkdir(parents=True, exist_ok=True)
+    env["GH_CONFIG_DIR"] = str(empty)
     return env
 
 

@@ -1,11 +1,13 @@
 """The runner blocks a recur DONE that lacks a SHA and a PASS line."""
 
+import subprocess
 import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "tools"))
 
+import done_gate  # noqa: E402
 from done_gate import (  # noqa: E402
     approve_worker_done,
     blocked_has_lane_detail,
@@ -123,6 +125,27 @@ def main():
     cmd, env, prompt = runner_step.worker_launch({"id": "b9testgate", "body": "ping"})
     assert worker_cannot_post(cmd, env, prompt) is True
     print("PASS the real worker launch has no Channel token and no post call")
+    auth = subprocess.run(
+        ["gh", "auth", "status"],
+        env=env,
+        capture_output=True,
+        text=True,
+    )
+    assert auth.returncode != 0
+    assert "Logged in" not in (auth.stdout or "")
+    print("PASS gh auth status fails in the real worker env")
+    looked = []
+    real_run = done_gate.subprocess.run
+
+    def spy(args, **kwargs):
+        looked.append(args)
+        return real_run(args, **kwargs)
+
+    done_gate.subprocess.run = spy
+    assert done_gate.confirmed_sha("8565050") is False
+    assert looked == []
+    done_gate.subprocess.run = real_run
+    print("PASS a short all-digit string is not sent to git cat-file")
 
 
 if __name__ == "__main__":
