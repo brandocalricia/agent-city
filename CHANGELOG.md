@@ -1,5 +1,11 @@
 # Agent City - Changelog
 
+## 2026-10-09 - More free capacity
+- DuckDuckGo keyless lane added after mistral-small-2603 replied pong. gpt-oss stays excluded. Cloudflare Playground returned 502 (no browser) and UncloseAI returned 404, so neither was added
+- Cerebras stays inactive. Remote free lanes are now 5. One measured turn before this was 100% on the free side. The one-line checks this pass sent 0 calls to Grok
+- Local llama.cpp left at context 16384. The Mac has 24 GB, and free pages were too low to restart it onto a larger context
+- Site version `2026-10-09c`
+
 ## 2026-10-09 - Newsroom draft on a free lane
 - One story for 2026-10-09: Grok Build 1.0.50 refuses `worktree rm` without `-f` when a worktree is dirty or in use (changelog fetched the same day; lane auto/offline, model moonshotai/kimi-k3)
 - Savings Hub lists per-role free vs Grok in/out from `routed_free_by_role`

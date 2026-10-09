@@ -57,6 +57,15 @@
       "note": "14 free chat models in the pool. north-mini-code replied pong in 6679 ms. gemma-4-31b-it was cooling down (429). The free router id answered HTTP 200 with an empty visible reply."
     },
     {
+      "name": "DuckDuckGo",
+      "state": "up",
+      "chat": "up",
+      "priority": 7,
+      "free_models": 1,
+      "model": "mistral-small-2603",
+      "note": "Keyless. mistral-small-2603 replied pong in 1883 ms. gpt-oss id excluded. Do not send private text on this lane."
+    },
+    {
       "name": "llama.cpp",
       "state": "optional",
       "chat": "up",
@@ -124,7 +133,7 @@
   },
   "lanes": {
     "local": 1,
-    "remote_free": 4,
+    "remote_free": 5,
     "grok": 0
   },
   "quota": {
@@ -140,9 +149,16 @@
     "draft": "auto/offline offline-friendly",
     "high_stakes": "grok",
     "retry": "one stronger free model, then paced Grok",
-    "order": "nvidia, kilo-gateway, ovhcloud, openrouter, llama.cpp"
+    "order": "nvidia, kilo-gateway, ovhcloud, openrouter, duckduckgo-web, llama.cpp"
   },
   "routed_free": 20817,
+  "free_share": {
+    "before_remote_lanes": 3,
+    "before_measured_pct": 100,
+    "after_remote_lanes": 5,
+    "pong_on_free": 4,
+    "grok_checks": 0
+  },
   "routed_free_by_role": {
     "reporter": {
       "lane": "auto/offline",
