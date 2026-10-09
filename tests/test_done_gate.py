@@ -7,7 +7,9 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "tools"))
 
 from done_gate import (  # noqa: E402
+    approve_worker_done,
     blocked_has_lane_detail,
+    command_a_may_post,
     newer_open_rejection,
     recur_done_evidence,
     strike_decision,
@@ -37,6 +39,7 @@ def main():
     assert decision["post_blocked"] is False, decision
     assert decision["split"] is True, decision
     print("PASS refusal fails over at once")
+    print("PASS the same step splits the prompt after two refusals")
 
     bare = strike_decision(2, "headless exit 1", "", 1000)
     assert bare["action"] == "retry", bare
@@ -65,6 +68,21 @@ def main():
     assert newer_open_rejection("b9recur1", rows)
     assert not newer_open_rejection("b9recur1re5", rows)
     print("PASS a newer rejection blocks another DONE for b9recur1")
+
+    bad = (FIXTURES / "gdb9recur1.md").read_text()
+    assert approve_worker_done("b9recur1", bad) is False
+    good = (
+        "Commit 98bea30\n"
+        "PASS a worker-drafted DONE goes through the gate before it is posted\n"
+    )
+    assert approve_worker_done("b9recur1", good) is True
+    print("PASS a worker-drafted DONE goes through the gate before it is posted")
+
+    lane = "lane: cohere/command-a-03-2025 HTTP 200"
+    assert command_a_may_post(lane, bad) is False
+    assert command_a_may_post(lane, good) is True
+    assert command_a_may_post("lane: main grok-4.7-build", "HTTP 200 and a real count") is True
+    print("PASS command-a-03-2025 cannot post a DONE until the draft passes the gate")
 
 
 if __name__ == "__main__":

@@ -80,6 +80,23 @@ def strike_decision(fail_count, error, log_tail_text, now):
     }
 
 
+def approve_worker_done(task_id, report):
+    """Only the runner posts, and only after a worker draft clears this gate."""
+    text = report or ""
+    if not text.strip():
+        return False
+    if str(task_id).startswith("b9recur") and not recur_done_evidence(text):
+        return False
+    return True
+
+
+def command_a_may_post(lane_text, report):
+    """command-a-03-2025 stays off DONE posts until the draft has a SHA and a PASS line."""
+    if "command-a-03-2025" not in (lane_text or "").lower():
+        return True
+    return recur_done_evidence(report or "")
+
+
 def newer_open_rejection(task_id, rows):
     """True when a later grok-bot note rejected this task and is still open."""
     short = str(task_id)
