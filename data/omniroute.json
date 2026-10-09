@@ -2,7 +2,10 @@
   "version": "3.8.51",
   "compression": {
     "mode": "stacked",
-    "pipeline": ["rtk", "caveman"],
+    "pipeline": [
+      "rtk",
+      "caveman"
+    ],
     "combo": "rtk then caveman",
     "caveman_keeps_code": true,
     "source": "default"
@@ -23,34 +26,58 @@
       "note": "Two chat calls returned 403. A direct call returned Cloudflare error 1010. Set inactive and moved out of the pool. No card added."
     },
     {
-      "name": "Gemini",
+      "name": "Cohere",
       "state": "up",
       "chat": "up",
       "priority": 1,
+      "model": "command-a-03-2025",
+      "note": "command-a is not a catalog id. command-a-03-2025 returned HTTP 200 in 40 ms, reply pong. Vision, embed, and rerank models stay off. Trial lane: not for private text."
+    },
+    {
+      "name": "Mistral",
+      "state": "up",
+      "chat": "up",
+      "priority": 2,
+      "model": "codestral-latest",
+      "note": "codestral-latest returned HTTP 200 in 23 ms, reply pong. mistral-medium-latest is excluded (not in the catalog, HTTP 429). mistral-small-latest timed out at 25 s on the latest probe and is not the default. Free lane: not for private text."
+    },
+    {
+      "name": "Z.AI",
+      "state": "up",
+      "chat": "up",
+      "priority": 3,
+      "model": "glm-4.7-flash",
+      "note": "glm-4.7-flash returned HTTP 200 in 18 ms, reply pong. Other Z.AI models stay off."
+    },
+    {
+      "name": "Gemini",
+      "state": "cooling",
+      "chat": "down",
+      "priority": 6,
       "model": "gemini-3.8-flash",
-      "note": "Priority 1. A one-line call returned HTTP 200."
+      "note": "Priority 6, behind the healthy free lanes and NVIDIA. gemini-3-flash-preview timed out at 25 s. The row is HTTP 429. Not for private text."
     },
     {
       "name": "Groq",
       "state": "up",
       "chat": "up",
-      "priority": 3,
+      "priority": 5,
       "model": "openai/gpt-oss-20b",
-      "note": "Priority 3, below Gemini and Nvidia. gpt-oss-20b replied pong, HTTP 200. llama-3.3-70b-versatile is dropped (model_not_found). Non-OpenAI message fields are stripped before the call."
+      "note": "Priority 5, behind NVIDIA. gpt-oss-20b returned HTTP 200. An oversized prompt is refused locally so the next lane takes it. gpt-oss-120b stays out of the auto pool."
     },
     {
       "name": "NVIDIA NIM",
       "state": "up",
       "chat": "up",
-      "priority": 2,
+      "priority": 4,
       "free_models": 11,
-      "note": "11 chat models in the pool. 11 non-chat models excluded. kimi-k3 replied pong in 1172 ms. deepseek-v4-flash-0731 returned 410 model_shutdown. glm-5.3 and kimi-k2.6 are not in this catalog. nemotron-3-ultra-550b-a55b is listed."
+      "note": "Priority 4. nemotron-3-ultra returned HTTP 200. gpt-oss-120b is excluded (it was HTTP 410 not_found)."
     },
     {
       "name": "Kilo Gateway",
       "state": "up",
       "chat": "up",
-      "priority": 4,
+      "priority": 7,
       "free_models": 4,
       "model": "kilo-auto/free",
       "note": "No-credential lane. Paid auto routes excluded. kilo-auto/free returned HTTP 200 in 10946 ms with an empty visible reply."
@@ -59,7 +86,7 @@
       "name": "OVHcloud",
       "state": "up",
       "chat": "up",
-      "priority": 5,
+      "priority": 8,
       "free_models": 3,
       "model": "Mistral-Small-3.2-24B-Instruct-2506",
       "note": "Anonymous lane. Mistral Small replied pong in 838 ms. Llama 3.3 70B returned 429. Qwen3.6-27B is not in the live catalog. gpt-oss ids stay excluded."
@@ -68,7 +95,7 @@
       "name": "OpenRouter",
       "state": "up",
       "chat": "up",
-      "priority": 6,
+      "priority": 9,
       "free_models": 14,
       "note": "14 free chat models in the pool. north-mini-code replied pong in 6679 ms. gemma-4-31b-it was cooling down (429). The free router id answered HTTP 200 with an empty visible reply."
     },
@@ -76,7 +103,7 @@
       "name": "DuckDuckGo",
       "state": "up",
       "chat": "up",
-      "priority": 7,
+      "priority": 10,
       "model": "mistral-small-2603",
       "note": "Keyless. Priority 7. Do not send private text on this lane."
     },
@@ -84,10 +111,18 @@
       "name": "llama.cpp",
       "state": "optional",
       "chat": "up",
-      "priority": 8,
+      "priority": 11,
       "model": "Qwen3.5-4B-Q4_K_M",
       "context_window": 16384,
       "note": "already running, so it was not restarted. Draft only. A harness turn of about 17909 does not fit."
+    },
+    {
+      "name": "Cloudflare",
+      "state": "down",
+      "chat": "down",
+      "priority": 12,
+      "model": "@cf/qwen/qwen2.5-coder-32b-instruct",
+      "note": "All three named free models returned HTTP 502. Workers AI requires an Account ID in provider settings. The Account ID is not saved. Priority 12 until the owner adds it in Providers."
     },
     {
       "name": "OpenCode Free",
@@ -160,11 +195,12 @@
     "minimal_when_healthy": 0
   },
   "routing": {
-    "coding": "gemini first, then nvidia, groq, kilo, ovh, openrouter",
+    "coding": "cohere, mistral codestral, zai, then nvidia, groq, gemini",
     "draft": "auto/offline offline-friendly",
     "high_stakes": "grok",
     "retry": "one stronger free model, then paced Grok",
-    "order": "gemini, nvidia, groq, kilo-gateway, ovhcloud, openrouter, duckduckgo-web, llama.cpp"
+    "order": "cohere, mistral, zai, nvidia, groq, gemini, kilo-gateway, ovhcloud, openrouter, duckduckgo-web, llama.cpp, cloudflare-ai",
+    "private": "Grok only. Do not send private or personal text on Gemini free, Mistral free, or the Cohere trial."
   },
   "routed_free": 20817,
   "routed_free_by_role": {
@@ -178,25 +214,109 @@
       "calls": 1
     }
   },
-  "waiting_on_owner": ["mistral", "cloudflare", "zai", "longcat", "cohere", "llm7"],
+  "waiting_on_owner": [
+    "cloudflare",
+    "longcat",
+    "llm7"
+  ],
   "lane_checks": [
-    {"provider": "cerebras", "model": "qwen-3.8-27b", "ok": false, "http": 403, "ms": 21335},
-    {"provider": "nvidia", "model": "moonshotai/kimi-k3", "ok": true, "http": 200, "ms": 1172, "reply": "pong", "in": 93, "out": 17},
-    {"provider": "nvidia", "model": "deepseek-ai/deepseek-v4-flash-0731", "ok": false, "http": 410, "ms": 131},
-    {"provider": "openrouter", "model": "google/gemma-4-31b-it:free", "ok": false, "http": 429, "ms": 39724},
-    {"provider": "openrouter", "model": "cohere/north-mini-code:free", "ok": true, "http": 200, "ms": 6679, "reply": "pong", "in": 7, "out": 26},
-    {"provider": "openrouter", "model": "openrouter/free", "ok": true, "http": 200, "reply_visible": false},
-    {"provider": "kilo-gateway", "model": "kilo-auto/free", "ok": true, "http": 200, "ms": 10946, "reply_visible": false, "in": 28, "out": 16},
-    {"provider": "ovhcloud", "model": "Meta-Llama-3_3-70B-Instruct", "ok": false, "http": 429, "ms": 17848},
-    {"provider": "ovhcloud", "model": "Mistral-Small-3.2-24B-Instruct-2506", "ok": true, "http": 200, "ms": 838, "reply": "pong", "in": 11, "out": 3},
-    {"provider": "groq", "model": "openai/gpt-oss-20b", "ok": true, "http": 200, "reply": "pong", "in": 96, "out": 21},
-    {"provider": "groq", "model": "llama-3.3-70b-versatile", "ok": false, "http": 401, "note": "dropped from the Groq list"}
+    {
+      "provider": "cohere",
+      "model": "command-a-03-2025",
+      "ok": true,
+      "http": 200,
+      "ms": 40,
+      "reply": "pong",
+      "in": 5,
+      "out": 1
+    },
+    {
+      "provider": "mistral",
+      "model": "codestral-latest",
+      "ok": true,
+      "http": 200,
+      "ms": 23,
+      "reply": "pong",
+      "in": 9,
+      "out": 3
+    },
+    {
+      "provider": "mistral",
+      "model": "mistral-small-latest",
+      "ok": false,
+      "http": 0,
+      "ms": 25003,
+      "note": "timed out"
+    },
+    {
+      "provider": "zai",
+      "model": "glm-4.7-flash",
+      "ok": true,
+      "http": 200,
+      "ms": 18,
+      "reply": "pong",
+      "in": 10,
+      "out": 2
+    },
+    {
+      "provider": "groq",
+      "model": "openai/gpt-oss-20b",
+      "ok": true,
+      "http": 200,
+      "ms": 255,
+      "in": 76,
+      "out": 32,
+      "reply_visible": false
+    },
+    {
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "ok": false,
+      "http": 0,
+      "ms": 25001,
+      "note": "timed out"
+    },
+    {
+      "provider": "cloudflare-ai",
+      "model": "@cf/openai/gpt-oss-120b",
+      "ok": false,
+      "http": 502,
+      "ms": 11784,
+      "note": "Account ID is not saved"
+    },
+    {
+      "provider": "cloudflare-ai",
+      "model": "@cf/qwen/qwen2.5-coder-32b-instruct",
+      "ok": false,
+      "http": 502,
+      "ms": 11379,
+      "note": "Account ID is not saved"
+    },
+    {
+      "provider": "cloudflare-ai",
+      "model": "@cf/zai-org/glm-4.7-flash",
+      "ok": false,
+      "http": 502,
+      "ms": 11618,
+      "note": "Account ID is not saved"
+    },
+    {
+      "provider": "nvidia",
+      "model": "nemotron-3-ultra-550b-a55b",
+      "ok": true,
+      "http": 200,
+      "ms": 5670
+    }
   ],
   "measured_turn": {
-    "provider": "groq",
-    "model": "openai/gpt-oss-20b",
-    "in": 96,
-    "out": 21,
+    "provider": "cohere",
+    "model": "command-a-03-2025",
+    "turns": 2,
+    "in": 12,
+    "out": 2,
+    "http": 200,
+    "ms": 509,
+    "reply": "pong again",
     "free_share_pct": 100
   },
   "swarm": {
