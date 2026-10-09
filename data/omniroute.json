@@ -143,6 +143,17 @@
     "order": "nvidia, kilo-gateway, ovhcloud, openrouter, llama.cpp"
   },
   "routed_free": 20817,
+  "routed_free_by_role": {
+    "reporter": {
+      "lane": "auto/offline",
+      "model": "moonshotai/kimi-k3",
+      "free_in": 322,
+      "free_out": 197,
+      "grok_in": 0,
+      "grok_out": 0,
+      "calls": 1
+    }
+  },
   "waiting_on_owner": ["gemini", "groq", "mistral", "cloudflare", "zai", "longcat", "cohere", "llm7"],
   "lane_checks": [
     {"provider": "cerebras", "model": "qwen-3.8-27b", "ok": false, "http": 403, "ms": 21335},

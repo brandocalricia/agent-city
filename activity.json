@@ -572,5 +572,12 @@
     "role": "auditor",
     "action": "Checked free lanes and took Cerebras out of the pool after two 403s",
     "details": "NVIDIA kimi-k3, OpenRouter north-mini-code, and OVH Mistral Small each replied pong. Kilo free router returned HTTP 200 with an empty visible reply. Paid Kilo auto routes are excluded. gpt-oss stays out of the OVH pool. Eight providers still wait for an owner credential."
+  },
+  {
+    "date": "2026-10-09",
+    "session": "Free lanes",
+    "role": "reporter",
+    "action": "Filed one story: Grok Build 1.0.50 refuses a dirty or in-use worktree remove",
+    "details": "Source fetched: x.ai Grok Build changelog, October 6, 2026, v1.0.50. Draft lane auto/offline, model moonshotai/kimi-k3, 322 in / 197 out. Routed to Grok Build. No invented figures."
   }
 ]

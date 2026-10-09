@@ -1,6 +1,6 @@
 # Agent City suggestions for Grok Build
 
-Generated 2026-10-09 03:38 UTC by build_data.py; refreshed every city session. Read by the `city-apply` skill.
+Generated 2026-10-09 03:40 UTC by build_data.py; refreshed every city session. Read by the `city-apply` skill.
 Only the Apply queue is actionable. Each id is processed once; local state is `~/.grok/agent-city/applied.json`.
 Every item carries checks (run before and after; `$ ` lines are commands) and tests (must pass). Items without them are skipped.
 
@@ -46,6 +46,7 @@ Every item carries checks (run before and after; `$ ` lines are commands) and te
 
 ## Newsroom: recent news for Grok Build (context, not actionable)
 
+- 2026-10-09 [Grok Build 1.0.50: worktree rm refuses dirty or in-use worktrees without -f](https://x.ai/build/changelog) (grok-build): A remove that stops when a worktree is dirty or in use keeps the city from deleting the owner's work by mistake.
 - 2026-10-08 [Grok Build 1.0.46: session-start rules survive prompt rebuilds; grok inspect reports MCP sources](https://x.ai/build/changelog) (grok-build): The city's global rule and SessionStart hook load at session start; this fix keeps them in force in long sessions. Worth being on 1.0.46+ (grok update).
 - 2026-10-08 [Grok Build 1.0.44 adds /context-window and per-model context choices](https://x.ai/build/changelog) (tokens): A smaller context window for routine sessions (city-apply, quick fixes) is a direct token saving; keep the big window for refactors.
 - 2026-10-08 ["Time to rewrite" (TTR): measuring how agent-ready a codebase is](https://x.com/i/trending/2108003942076408271) (technique): Same idea as AGENTS.md: specs next to code and tests an agent can run. Supports keeping the city's AGENTS.md and tests current every session.

@@ -1,4 +1,6 @@
 [
+  {"date": "2026-10-09", "title": "Grok Build 1.0.50: worktree rm refuses dirty or in-use worktrees without -f", "url": "https://x.ai/build/changelog", "source": "x.ai Grok Build changelog (Oct 6)", "tag": "grok-build", "for": ["gb"],
+   "why": "A remove that stops when a worktree is dirty or in use keeps the city from deleting the owner's work by mistake."},
   {"date": "2026-10-08", "title": "Grok Build 1.0.46: session-start rules survive prompt rebuilds; grok inspect reports MCP sources", "url": "https://x.ai/build/changelog", "source": "x.ai Grok Build changelog (Sep 30)", "tag": "grok-build", "for": ["gb", "council"],
    "why": "The city's global rule and SessionStart hook load at session start; this fix keeps them in force in long sessions. Worth being on 1.0.46+ (grok update)."},
   {"date": "2026-10-08", "title": "Grok Build 1.0.44 adds /context-window and per-model context choices", "url": "https://x.ai/build/changelog", "source": "x.ai Grok Build changelog (Sep 28)", "tag": "tokens", "for": ["gb", "promptsmith"],
