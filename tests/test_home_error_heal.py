@@ -85,6 +85,63 @@ def test_apply_filter_is_idempotent():
     assert chunk.read_text() == text
 
 
+def _run(install):
+    return subprocess.run(
+        [sys.executable, str(SCRIPT), str(install)],
+        capture_output=True,
+        text=True,
+        env={"HOME_HEAL_RELOAD": "0", "PATH": "/usr/bin:/bin"},
+    )
+
+
+def test_wiped_metrics_filter_is_restored():
+    import tempfile
+
+    root = Path(tempfile.mkdtemp())
+    chunk = root / "dist" / "metrics.js"
+    chunk.parent.mkdir()
+    chunk.write_text("start " + home_error_heal.OLD + " end")
+    first = _run(root)
+    assert first.returncode == 0, first.stderr
+    assert home_error_heal.NEW in chunk.read_text()
+    chunk.write_text("start " + home_error_heal.OLD + " end")
+    second = _run(root)
+    assert second.returncode == 0, second.stderr
+    assert "PASS home metrics filter installed 1" in second.stdout
+    assert home_error_heal.OLD not in chunk.read_text()
+    assert home_error_heal.NEW in chunk.read_text()
+
+
+def test_center_is_green_when_clear_and_red_only_on_error():
+    import tempfile
+
+    root = Path(tempfile.mkdtemp())
+    chunk = root / "dist" / "center.js"
+    chunk.parent.mkdir()
+    chunk.write_text(
+        home_error_heal.NEW
+        + home_error_heal.CENTER_OLD
+        + home_error_heal.ICON_OLD
+        + home_error_heal.DATA_OLD
+    )
+    proc = _run(root)
+    assert proc.returncode == 0, proc.stdout + proc.stderr
+    text = chunk.read_text()
+    assert home_error_heal.center_is_healthy(text)
+    assert home_error_heal.DATA_NEW in text
+    assert "text-green-600" in text
+    wiped = (
+        home_error_heal.NEW
+        + home_error_heal.CENTER_OLD
+        + home_error_heal.ICON_OLD
+        + home_error_heal.DATA_OLD
+    )
+    chunk.write_text(wiped)
+    again = _run(root)
+    assert again.returncode == 0, again.stderr
+    assert home_error_heal.center_is_healthy(chunk.read_text())
+
+
 if __name__ == "__main__":
     test_inactive_401_is_not_the_center_error()
     test_stuck_error_without_attempt_is_a_violation()
@@ -93,4 +150,6 @@ if __name__ == "__main__":
     test_clear_center_is_not_a_violation()
     test_stale_attempt_is_a_violation()
     test_apply_filter_is_idempotent()
+    test_wiped_metrics_filter_is_restored()
+    test_center_is_green_when_clear_and_red_only_on_error()
     print("PASS home error heal tests")

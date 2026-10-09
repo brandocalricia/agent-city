@@ -31,6 +31,29 @@ NEW = (
     "      )\n    GROUP BY c.provider"
 )
 SOURCE_MARKER = "pc.provider = c.provider AND pc.is_active = 1"
+CENTER_OLD = (
+    'h[8]!==c?(d=(0,t.jsxs)("div",{className:"flex items-center gap-2 px-5 py-3 '
+    'rounded-xl border-2 border-primary bg-primary/8 shadow-lg min-w-[140px] '
+    'justify-center",children:[n,a,i,l,u,f,c]}),h[8]=c,h[9]=d)'
+)
+CENTER_NEW = (
+    'h[8]!==c||h[12]!==!!p.error?(d=(0,t.jsxs)("div",{className:"flex items-center '
+    'gap-2 px-5 py-3 rounded-xl border-2 "+(p.error?"border-red-500 bg-red-50":'
+    '"border-emerald-500 bg-emerald-50")+" shadow-lg min-w-[140px] justify-center",'
+    'children:[n,a,i,l,u,f,c]}),h[8]=c,h[12]=!!p.error,h[9]=d)'
+)
+ICON_OLD = (
+    'bg-primary/15 shrink-0",children:(0,t.jsx)("span",{className:"material-symbols-outlined '
+    'text-primary text-[16px]",children:"route"})}),f=(0,t.jsx)("span",{className:"text-sm '
+    'font-bold text-primary",children:"OmniRoute"})'
+)
+ICON_NEW = (
+    'bg-green-100 shrink-0",children:(0,t.jsx)("span",{className:"material-symbols-outlined '
+    'text-green-600 text-[16px]",children:"route"})}),f=(0,t.jsx)("span",{className:"text-sm '
+    'font-bold text-green-600",children:"OmniRoute"})'
+)
+DATA_OLD = "data:{activeCount:t.size}"
+DATA_NEW = "data:{activeCount:t.size,error:n.size>0}"
 FAIL = "FAIL home metrics filter missing"
 QUERY_FAIL = "FAIL home metrics query"
 STUCK_S = 120
@@ -43,6 +66,26 @@ def apply_filter(text):
     if count == 0:
         return text, 0
     return text.replace(OLD, NEW), count
+
+
+def apply_center(text):
+    """Paint the center rectangle from the error flag. Primary #e54d5e is always red."""
+    count = 0
+    if CENTER_OLD in text:
+        text = text.replace(CENTER_OLD, CENTER_NEW)
+        count += 1
+    if ICON_OLD in text:
+        text = text.replace(ICON_OLD, ICON_NEW)
+        count += 1
+    if DATA_OLD in text and DATA_NEW not in text:
+        text = text.replace(DATA_OLD, DATA_NEW)
+        count += 1
+    return text, count
+
+
+def center_is_healthy(text):
+    """True when a clear center uses emerald, and red only while p.error is set."""
+    return "border-emerald-500 bg-emerald-50" in text and "border-red-500 bg-red-50" in text and CENTER_OLD not in text
 
 
 def parse_time(value):
@@ -104,10 +147,11 @@ def reapply(install):
             text = path.read_text(errors="replace")
         except OSError:
             continue
-        if OLD not in text and NEW not in text:
-            continue
-        seen += 1
-        if OLD not in text:
+        updated, count = apply_filter(text)
+        updated, center_count = apply_center(updated)
+        if OLD in text or NEW in text:
+            seen += 1
+        if count == 0 and center_count == 0:
             continue
         backup_dir = Path.home() / ".agent-city" / "backup"
         backup_dir.mkdir(parents=True, exist_ok=True)
@@ -115,9 +159,8 @@ def reapply(install):
         dest = backup_dir / f"metrics-active-{stamp}-{path.name}"
         if not dest.exists():
             shutil.copy2(path, dest)
-        updated, count = apply_filter(text)
         path.write_text(updated)
-        changed += count
+        changed += count + center_count
     source = root / "src" / "lib" / "db" / "callLogStats.ts"
     if source.is_file() and SOURCE_MARKER not in source.read_text(errors="replace"):
         return -1
