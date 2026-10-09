@@ -1,5 +1,10 @@
 # Agent City - Changelog
 
+## 2026-10-09 - Newsroom draft on a free lane
+- One story for 2026-10-09: Grok Build 1.0.50 refuses `worktree rm` without `-f` when a worktree is dirty or in use (changelog fetched the same day; lane auto/offline, model moonshotai/kimi-k3)
+- Savings Hub lists per-role free vs Grok in/out from `routed_free_by_role`
+- Site version `2026-10-09b`
+
 ## 2026-10-09 - Free lanes after a live check
 - Cerebras is inactive after two chat calls returned 403 (direct call: Cloudflare 1010). No card added
 - Kilo Gateway (no credential, paid auto routes excluded) and OVH anonymous are in the pool. OVH Mistral Small replied; gpt-oss stays excluded
