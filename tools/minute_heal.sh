@@ -10,4 +10,6 @@ nokey_rc=$?
 if [ "$home_rc" -ne 0 ] || [ "$nokey_rc" -ne 0 ]; then
   exit 1
 fi
+# Refresh the local savings reading. A failure here must not fail the heal.
+python3 "$HERE/analytics_savings_refresh.py" >/dev/null 2>&1 || true
 exit 0
