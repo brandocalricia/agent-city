@@ -1,6 +1,7 @@
 # Publishes a fully pushed `publish` branch to main in ONE commit, so a session that stops partway never leaves the live site half-updated.
 # Sessions: create branch `publish` from main, push the changed files in any number of commits, and put "[publish]" in the LAST commit message.
 # data.js and grok-build/suggestions.md + manifest.txt are regenerated here, so sessions only push data.js when skills, agents or routines changed.
+# tools/privacy_check.py runs before the tests: any email address or money amount in a publishable file stops the publish (fail closed).
 name: publish
 on:
   push:
@@ -37,6 +38,8 @@ jobs:
           python3 build_data.py
           git add data.js grok-build/suggestions.md grok-build/manifest.txt
           git diff --cached --quiet || git commit -q -m "Regenerate data.js and the Grok Build feed"
+      - name: Privacy check (fails closed on email or amount hits; nothing is published)
+        run: python3 tools/privacy_check.py
       - name: Tests (nothing is published if they fail)
         run: python3 -m unittest discover -s tests
       - name: Move main to this branch's files in one commit

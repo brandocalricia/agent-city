@@ -565,5 +565,43 @@
     "confidence": 7,
     "reason": "Keeps the Morning Brief and Study Hall fresh after a failed session while staying inside this session's M budget",
     "ideals": "Seamless (3), useful (2), token-light (4)"
+  },
+  {
+    "date": "2026-10-09",
+    "session": "Free lanes",
+    "role": "auditor",
+    "action": "Checked free lanes and took Cerebras out of the pool after two 403s",
+    "details": "NVIDIA kimi-k3, OpenRouter north-mini-code, and OVH Mistral Small each replied pong. Kilo free router returned HTTP 200 with an empty visible reply. Paid Kilo auto routes are excluded. gpt-oss stays out of the OVH pool. Eight providers still wait for an owner credential."
+  },
+  {
+    "date": "2026-10-09",
+    "session": "Free lanes",
+    "role": "reporter",
+    "action": "Filed one story: Grok Build 1.0.50 refuses a dirty or in-use worktree remove",
+    "details": "Source fetched: x.ai Grok Build changelog, October 6, 2026, v1.0.50. Draft lane auto/offline, model moonshotai/kimi-k3, 322 in / 197 out. Routed to Grok Build. No invented figures."
+  },
+  {
+    "date": "2026-10-09",
+    "session": "Overnight session (10:49 PM)",
+    "role": "inspector",
+    "action": "Live site serves 2026-10-09b, same as main; local render has no page errors; no stalled publish branch"
+  },
+  {
+    "date": "2026-10-09",
+    "session": "Overnight session (10:49 PM)",
+    "role": "council",
+    "action": "Quick Council: YES, run privacy_check in the publish Action before Tests and fail closed",
+    "question": "Should every [publish] run tools/privacy_check.py before Tests and stop the publish on any email or amount hit?",
+    "size": "Quick",
+    "verdict": "YES",
+    "confidence": 8,
+    "reason": "One-line step, the repo already scans clean, and a leak to the public site cannot be undone; a false positive only delays a publish and is fixed with the allowlist",
+    "ideals": "Private (6) and seamless (3), token-free (4); small tension with autonomous (7) if a false positive blocks a publish, handled by the reviewed allowlist idea"
+  },
+  {
+    "date": "2026-10-09",
+    "session": "Overnight session (10:49 PM)",
+    "role": "builder",
+    "action": "Wired tools/privacy_check.py into the publish Action before Tests (roadmap #58), with a test that keeps it there"
   }
 ]

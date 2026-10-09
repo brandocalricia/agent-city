@@ -34,11 +34,12 @@ Legend: [x] done · [ ] todo · (W) wow factor · (U) useful
 - [x] 3. Study Hall answer box: local check (numeric for expressions in x) before the solution unlocks
 - [x] 4. Prompt linter in the Prompt Workshop: paste a prompt, see what's missing (goal, context, done-when, output)
 - [x] 53. (part) Label declutter: overlapping building names fade, the farther one first; Town Hall always stays (chips overlap still open, #53)
+- [x] 58. (Council YES 8/10) privacy_check.py runs in publish.yml before Tests; every [publish] fails closed on email/amount hits (R-006 continues)
 - [x] 29. Mobile/touch: tap to open, bottom-sheet panels, saver graphics on phones (virtual joystick moved to #46)
 
 ## Backlog (top = next)
 <!-- Re-ranked 2026-10-08 evening Daily Council: safety + usefulness before Metropolis wow -->
-R-006. [ ] (U) Security lethal-trifecta hardening: pre-publish privacy_check (started), gitleaks-style CI, pin Actions SHAs, email/news never become gb verbatim, keep requests.json local
+R-006. [ ] (U) Security lethal-trifecta hardening: pre-publish privacy_check (in CI since 2026-10-09), gitleaks-style CI, pin Actions SHAs, email/news never become gb verbatim, keep requests.json local
 R-002. [ ] (U) Useful Index: one-tap rate of city outputs + per-role useful/produced in Treasury; Council weights backlog by it
 R-005. [ ] (U) Output evals with deterministic graders (20-50 cases; Tutor sympy; URL resolve; schema; show pass rate on Review Board)
 R-008. [ ] (U) Token-free reliability: scheduled GA live-site smoke + session heartbeat on Notice Board + private backup of local state
@@ -50,7 +51,8 @@ R-004. [ ] (U) Launchpad career pipeline (deadline tracker, bullet bank, portfol
 R-007. [ ] (U) Merge Study Hall with Q1 DU Tutor + spaced retrieval (shared weekly limit careful)
 R-009. [ ] (U) Today view: phone-first digest outside the 3D scene
 R-013..016. [ ] (W) Schedule I-like living city / skate / currency — after R-006, R-002, R-005, R-011; original art only
-58. [ ] (U) Wire privacy_check.py into publish.yml (and document in session skill) so every [publish] fails closed on email/amount hits
+60. [ ] (U) privacy_check `--files` mode + line numbers: scan only the files a publish changes and print `path:line` so a hit is fixed in seconds (feeds R-006)
+61. [ ] (U) Reviewed allowlist file for privacy_check (`tools/privacy_allow.txt`, one pattern + reason per line, Council YES to add) so a false positive never tempts anyone to turn the gate off
 59. [ ] (U) Session heartbeat JSON (local): last start/finish/ok written each session; Notice Board surfaces a missing heartbeat (feeds R-008)
 5. [ ] (U) Review Board checklist view: the Critic's pass/fail checks as icons per role
 6. [ ] (W) Agents follow sidewalks/crosswalks; idle animations by role (reading, typing, hammering)

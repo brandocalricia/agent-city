@@ -1,6 +1,6 @@
 # Agent City suggestions for Grok Build
 
-Generated 2026-10-09 03:59 UTC by build_data.py; refreshed every city session. Read by the `city-apply` skill.
+Generated 2026-10-09 05:07 UTC by build_data.py; refreshed every city session. Read by the `city-apply` skill.
 Only the Apply queue is actionable. Each id is processed once; local state is `~/.grok/agent-city/applied.json`.
 Every item carries checks (run before and after; `$ ` lines are commands) and tests (must pass). Items without them are skipped.
 
@@ -30,19 +30,19 @@ Every item carries checks (run before and after; `$ ` lines are commands) and te
 
 ## Latest Council verdicts (context; already handled in the city)
 
+- 2026-10-09 Quick YES 8/10: Should every [publish] run tools/privacy_check.py before Tests and stop the publish on any email or amount hit? Reason: One-line step, the repo already scans clean, and a leak to the public site cannot be undone; a false positive only delays a publish and is fixed with the allowlist
 - 2026-10-08 Quick YES 7/10: Catch up the missed 8:49 AM roles at midday (Courier, Timekeeper, Tutor), skipping Scout deep research and the Newsroom since today's digest exists? Reason: Keeps the Morning Brief and Study Hall fresh after a failed session while staying inside this session's M budget
 - 2026-10-08 Quick YES 9/10: Skip the test workflow on partial publish-branch pushes, but still run it on the final [publish] commit? Reason: Partial pushes are incomplete by design, so their failures were pure noise (about 15 emails); the [publish] commit still gets the full ubuntu + macOS run and publish.yml still gates main
 - 2026-10-08 Quick YES 8/10: Fade overlapping building labels, keeping Town Hall's label always visible? Reason: Overlapping names were unreadable in the overview; one small throttled file fixes it and is easy to undo; search and the minimap still reach every building
 - 2026-10-08 Quick YES 8/10: Should the Prompt Workshop get a linter that checks a pasted prompt for goal, context, done-when, and output, and offers the missing lines to copy? Reason: The four parts match the Delegate template agents already respond best to; checking runs in the browser, so it is instant and free. Red Team: keyword checks can miss a well-written prompt; accepted, it only suggests and never blocks.
-- 2026-10-08 Quick YES 9/10: Should large publishes be pushed to a `publish` branch in pieces and then moved to main in one commit by a GitHub Action (tests first, refusing to overwrite newer work), instead of a chain of direct pushes to main? Reason: Pushes to a branch never touch the live site, so a publish that stops partway leaves nothing half-live, which is what stranded the last two publishes. Opening pull requests from a scheduled run needs the owner to confirm a form, so an Action does the one-step move. Red Team: an Action that writes to main could overwrite newer work; rebutted, it refuses whenever main changed in files the branch differs on, and it never force-pushes.
 
 ## Next best steps for the city (context)
 
-1. (U) Wire privacy_check.py into publish.yml (and document in session skill) so every [publish] fails closed on email/amount hits
-2. (U) Session heartbeat JSON (local): last start/finish/ok written each session; Notice Board surfaces a missing heartbeat (feeds R-008)
-3. (U) Review Board checklist view: the Critic's pass/fail checks as icons per role
-4. (W) Agents follow sidewalks/crosswalks; idle animations by role (reading, typing, hammering)
-5. (U) Notice Board: dismiss/snooze notices l
+1. (U) privacy_check `--files` mode + line numbers: scan only the files a publish changes and print `path:line` so a hit is fixed in seconds (feeds R-006)
+2. (U) Reviewed allowlist file for privacy_check (`tools/privacy_allow.txt`, one pattern + reason per line, Council YES to add) so a false positive never tempts anyone to turn the gate off
+3. (U) Session heartbeat JSON (local): last start/finish/ok written each session; Notice Board surfaces a missing heartbeat (feeds R-008)
+4. (U) Review Board checklist view: the Critic's pass/fail checks as icons per role
+5. (W) Agents follow sidewalks/crosswalks; idle animations by role (reading, typing, hammering)
 
 ## Newsroom: recent news for Grok Build (context, not actionable)
 

@@ -1,5 +1,11 @@
 # Agent City - Changelog
 
+## 2026-10-09 - Overnight: privacy gate in the publish Action
+- Every `[publish]` now runs `tools/privacy_check.py` before the tests; an email address or money amount in a publishable file stops the publish and main stays untouched (roadmap #58, R-006 continues)
+- New test checks the gate stays before Tests and before main moves, with no `continue-on-error`
+- Quick Council: YES 8/10 on failing closed; 2 new roadmap ideas (#60 changed-files scan, #61 reviewed allowlist)
+- Site version `2026-10-09c`
+
 ## 2026-10-09 - Newsroom draft on a free lane
 - One story for 2026-10-09: Grok Build 1.0.50 refuses `worktree rm` without `-f` when a worktree is dirty or in use (changelog fetched the same day; lane auto/offline, model moonshotai/kimi-k3)
 - Savings Hub lists per-role free vs Grok in/out from `routed_free_by_role`
