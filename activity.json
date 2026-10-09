@@ -579,5 +579,12 @@
     "role": "reporter",
     "action": "Filed one story: Grok Build 1.0.50 refuses a dirty or in-use worktree remove",
     "details": "Source fetched: x.ai Grok Build changelog, October 6, 2026, v1.0.50. Draft lane auto/offline, model moonshotai/kimi-k3, 322 in / 197 out. Routed to Grok Build. No invented figures."
+  },
+  {
+    "date": "2026-10-09",
+    "session": "Free lanes",
+    "role": "auditor",
+    "action": "Added a keyless DuckDuckGo lane and left the local context at 16384",
+    "details": "mistral-small-2603 replied pong in 1883 ms. gpt-oss stays excluded. Cloudflare Playground returned 502 and UncloseAI returned 404, so they were not added. Free pages were about 150 MB, so llama.cpp was not restarted. Remote free lanes: 5. One-line checks sent to Grok: 0."
   }
 ]
