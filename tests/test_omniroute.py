@@ -78,6 +78,33 @@ class Omniroute(unittest.TestCase):
         self.assertEqual(p["mode"], "full")
         self.assertEqual(p["workers"], 3)
         self.assertEqual(p["assigned"][0]["kind"], "free")
+
+    def test_routing_order_matches_live_priority(self):
+        path = os.path.join(ROOT, "data", "omniroute.json")
+        order = json.loads(open(path, encoding="utf-8").read())["routing"]["order"]
+        names = [part.strip() for part in order.split(",")]
+        self.assertEqual(names[0], "gemini")
+        self.assertEqual(names[-1], "llama.cpp")
+        self.assertIn("groq", names)
+        db = os.path.expanduser("~/.omniroute/storage.sqlite")
+        if not os.path.exists(db):
+            return
+        import subprocess
+        try:
+            raw = subprocess.check_output(
+                [
+                    "sqlite3",
+                    db,
+                    "SELECT provider FROM provider_connections WHERE is_active=1 ORDER BY priority, provider;",
+                ],
+                text=True,
+                timeout=5,
+            )
+        except (OSError, subprocess.SubprocessError):
+            return
+        alias = {"llama-cpp": "llama.cpp"}
+        live = [alias.get(line.strip(), line.strip()) for line in raw.splitlines() if line.strip()]
+        self.assertEqual(names, live)
         empty = ss.plan({"lanes": {}})
         self.assertEqual(empty["grok_fallback_pct"], 100)
         self.assertEqual(empty["mode"], "minimal")
