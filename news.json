@@ -1,95 +1,106 @@
 [
- {
-  "date": "2026-10-08",
-  "title": "Grok Build 1.0.46: session-start rules survive prompt rebuilds; grok inspect reports MCP sources",
-  "url": "https://x.ai/build/changelog",
-  "source": "x.ai Grok Build changelog (Sep 30)",
-  "tag": "grok-build",
-  "for": [
-   "gb",
-   "council"
-  ],
-  "why": "The city's global rule and SessionStart hook load at session start; this fix keeps them in force in long sessions. Worth being on 1.0.46+ (grok update)."
- },
- {
-  "date": "2026-10-08",
-  "title": "Grok Build 1.0.44 adds /context-window and per-model context choices",
-  "url": "https://x.ai/build/changelog",
-  "source": "x.ai Grok Build changelog (Sep 28)",
-  "tag": "tokens",
-  "for": [
-   "gb",
-   "promptsmith"
-  ],
-  "why": "A smaller context window for routine sessions (city-apply, quick fixes) is a direct token saving; keep the big window for refactors."
- },
- {
-  "date": "2026-10-08",
-  "title": "\"Time to rewrite\" (TTR): measuring how agent-ready a codebase is",
-  "url": "https://x.com/i/trending/2108003942076408271",
-  "source": "X News (summary of posts)",
-  "tag": "technique",
-  "for": [
-   "council",
-   "gb"
-  ],
-  "why": "Same idea as AGENTS.md: specs next to code and tests an agent can run. Supports keeping the city's AGENTS.md and tests current every session."
- },
- {
-  "date": "2026-10-08",
-  "title": "Temperature 0 does not make LLM output repeatable (batch size, kernels, float math)",
-  "url": "https://thinkingmachines.ai/blog/defeating-nondeterminism-in-llm-inference/",
-  "source": "Thinking Machines Lab; X discussion Oct 7",
-  "tag": "technique",
-  "for": [
-   "promptsmith",
-   "council"
-  ],
-  "why": "Agent checks must test outcomes (files, exit codes), never exact model wording; the city-apply checks and tests already follow this."
- },
- {
-  "date": "2026-10-08",
-  "title": "Reflection AI announces Beam: 501B open-weight MoE (23B active) for coding and agents",
-  "url": "https://x.com/i/trending/2107487693986820219",
-  "source": "X News (summary of posts)",
-  "tag": "model",
-  "for": [
-   "scout"
-  ],
-  "why": "Reported 80.9 on SWE-bench with Apache-2.0 weights promised later this month; a candidate for the Scout to check once the weights are actually out."
- },
- {
-  "date": "2026-10-08",
-  "title": "Grok 4.7 reported at the top of VulcanBench coding and the AA Cyber Index",
-  "url": "https://x.com/i/trending/2106666031037223269",
-  "source": "X News (summary of posts)",
-  "tag": "grok",
-  "for": [
-   "council"
-  ],
-  "why": "Grok Build and Grok Bot run on it: no model switch needed for coding work; the Council keeps the strongest tier for King verdicts only."
- },
- {
-  "date": "2026-10-08",
-  "title": "OpenAI posts AI-found math results with Lean-checked proofs",
-  "url": "https://x.com/i/trending/2107577903374622920",
-  "source": "X News (summary of posts)",
-  "tag": "school",
-  "for": [
-   "tutor"
-  ],
-  "why": "Shows how proofs get machine-checked; a good motivation for the Tutor's Calc I rigor problems (epsilon-delta, derivative rules). Claims still under review by mathematicians."
- },
- {
-  "date": "2026-10-08",
-  "title": "Cogent Security launches Attack Path Analysis for AI agent swarm risks",
-  "url": "https://x.com/i/trending/2108211925138227296",
-  "source": "X News (summary of posts)",
-  "why": "Agent-swarm attack-path tooling underscores why R-006 lethal-trifecta hardening is top priority before more city autonomy.",
-  "tag": "agents",
-  "for": [
-   "council",
-   "scout"
-  ]
- }
+  {
+    "date": "2026-10-09",
+    "title": "Grok Build 1.0.50: worktree rm refuses dirty or in-use worktrees without -f",
+    "url": "https://x.ai/build/changelog",
+    "source": "x.ai Grok Build changelog (Oct 6)",
+    "tag": "grok-build",
+    "for": [
+      "gb"
+    ],
+    "why": "A remove that stops when a worktree is dirty or in use keeps the city from deleting the owner's work by mistake."
+  },
+  {
+    "date": "2026-10-08",
+    "title": "Grok Build 1.0.46: session-start rules survive prompt rebuilds; grok inspect reports MCP sources",
+    "url": "https://x.ai/build/changelog",
+    "source": "x.ai Grok Build changelog (Sep 30)",
+    "tag": "grok-build",
+    "for": [
+      "gb",
+      "council"
+    ],
+    "why": "The city's global rule and SessionStart hook load at session start; this fix keeps them in force in long sessions. Worth being on 1.0.46+ (grok update)."
+  },
+  {
+    "date": "2026-10-08",
+    "title": "Grok Build 1.0.44 adds /context-window and per-model context choices",
+    "url": "https://x.ai/build/changelog",
+    "source": "x.ai Grok Build changelog (Sep 28)",
+    "tag": "tokens",
+    "for": [
+      "gb",
+      "promptsmith"
+    ],
+    "why": "A smaller context window for routine sessions (city-apply, quick fixes) is a direct token saving; keep the big window for refactors."
+  },
+  {
+    "date": "2026-10-08",
+    "title": "\"Time to rewrite\" (TTR): measuring how agent-ready a codebase is",
+    "url": "https://x.com/i/trending/2108003942076408271",
+    "source": "X News (summary of posts)",
+    "tag": "technique",
+    "for": [
+      "council",
+      "gb"
+    ],
+    "why": "Same idea as AGENTS.md: specs next to code and tests an agent can run. Supports keeping the city's AGENTS.md and tests current every session."
+  },
+  {
+    "date": "2026-10-08",
+    "title": "Temperature 0 does not make LLM output repeatable (batch size, kernels, float math)",
+    "url": "https://thinkingmachines.ai/blog/defeating-nondeterminism-in-llm-inference/",
+    "source": "Thinking Machines Lab; X discussion Oct 7",
+    "tag": "technique",
+    "for": [
+      "promptsmith",
+      "council"
+    ],
+    "why": "Agent checks must test outcomes (files, exit codes), never exact model wording; the city-apply checks and tests already follow this."
+  },
+  {
+    "date": "2026-10-08",
+    "title": "Reflection AI announces Beam: 501B open-weight MoE (23B active) for coding and agents",
+    "url": "https://x.com/i/trending/2107487693986820219",
+    "source": "X News (summary of posts)",
+    "tag": "model",
+    "for": [
+      "scout"
+    ],
+    "why": "Reported 80.9 on SWE-bench with Apache-2.0 weights promised later this month; a candidate for the Scout to check once the weights are actually out."
+  },
+  {
+    "date": "2026-10-08",
+    "title": "Grok 4.7 reported at the top of VulcanBench coding and the AA Cyber Index",
+    "url": "https://x.com/i/trending/2106666031037223269",
+    "source": "X News (summary of posts)",
+    "tag": "grok",
+    "for": [
+      "council"
+    ],
+    "why": "Grok Build and Grok Bot run on it: no model switch needed for coding work; the Council keeps the strongest tier for King verdicts only."
+  },
+  {
+    "date": "2026-10-08",
+    "title": "OpenAI posts AI-found math results with Lean-checked proofs",
+    "url": "https://x.com/i/trending/2107577903374622920",
+    "source": "X News (summary of posts)",
+    "tag": "school",
+    "for": [
+      "tutor"
+    ],
+    "why": "Shows how proofs get machine-checked; a good motivation for the Tutor's Calc I rigor problems (epsilon-delta, derivative rules). Claims still under review by mathematicians."
+  },
+  {
+    "date": "2026-10-08",
+    "title": "Cogent Security launches Attack Path Analysis for AI agent swarm risks",
+    "url": "https://x.com/i/trending/2108211925138227296",
+    "source": "X News (summary of posts)",
+    "why": "Agent-swarm attack-path tooling underscores why R-006 lethal-trifecta hardening is top priority before more city autonomy.",
+    "tag": "agents",
+    "for": [
+      "council",
+      "scout"
+    ]
+  }
 ]

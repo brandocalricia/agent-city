@@ -1,5 +1,16 @@
 # Agent City - Changelog
 
+## 2026-10-09 - Newsroom draft on a free lane
+- One story for 2026-10-09: Grok Build 1.0.50 refuses `worktree rm` without `-f` when a worktree is dirty or in use (changelog fetched the same day; lane auto/offline, model moonshotai/kimi-k3)
+- Savings Hub lists per-role free vs Grok in/out from `routed_free_by_role`
+- Site version `2026-10-09b`
+
+## 2026-10-09 - Free lanes after a live check
+- Cerebras is inactive after two chat calls returned 403 (direct call: Cloudflare 1010). No card added
+- Kilo Gateway (no credential, paid auto routes excluded) and OVH anonymous are in the pool. OVH Mistral Small replied; gpt-oss stays excluded
+- NVIDIA kimi-k3 and OpenRouter north-mini-code replied. Routing order is nvidia, kilo, ovh, openrouter, then the local model. Gemini, Groq, Mistral, Cloudflare, Z.ai, Longcat, Cohere, and LLM7 still wait for the owner
+- Site version `2026-10-09a`
+
 ## 2026-10-08 - Evening: Daily Council + owner-request queue + privacy gate
 - Daily Full Council ranked next steps: R-006 security, R-002 Useful Index, R-005 evals, then Metropolis (R-001) and Playbook/Launchpad/Campus merge; Quick Councils approved R-008..R-009 and R-011..R-016 (phased, original art)
 - All 15 queued owner requests set to approved with council records (local requests.json); nothing built tonight (pace minimal, +22 pts over)
