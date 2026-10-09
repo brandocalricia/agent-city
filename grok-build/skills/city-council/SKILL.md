@@ -3,8 +3,8 @@ name: city-council
 description: >-
   Agent City's council, tailored for Grok Build. Use when the owner says
   "convene the council", "let the council decide", or /city-council, and as the
-  YES/NO gate in city-apply. Quick Council (3 seats) for minor code decisions,
-  Full Council (14 seats + King + Red Team) for important ones. Reads IDEALS.md.
+  YES/NO gate in city-apply. Full Council (14 seats + King + Red Team) for every
+  city decision. No Quick Council shortcut. Reads IDEALS.md.
 argument-hint: "<decision as a yes/no question>"
 metadata:
   author: Agent City
@@ -28,7 +28,7 @@ Based on the owner's `council` skill (roster, rubric, king protocol), cut down f
 Ask one clarifying question only if a field is unknown AND would change the answer. In city-apply, never ask: treat unknown as NO for now.
 
 ## 2. Size
-**Full** if any of these is true, else **Quick**:
+Every city decision is **Full** (14 seats + King + Red Team). There is no Quick Council shortcut. The stakes below say why a decision is heavy. They do not open a shorter council:
 - deletes or renames files, or deletes data the owner made
 - changes a schema, public API, CLI flags, config format, or a migration
 - force-push, history rewrite, branch delete, or anything touching a remote beyond a normal push
@@ -38,9 +38,9 @@ Ask one clarifying question only if a field is unknown AND would change the answ
 - edits global Grok config (`~/.grok/config.toml`, hooks) rather than one project
 - conflicts with an ideal in IDEALS.md
 
-## 3. Who runs where (token-light)
-- **Quick:** one pass in this session, no sub-agents. Seats: Pragmatist, Risk Officer, Resource Realist (swap in User Voice for UX, Devil's Advocate if it looks too easy). One line of cross-review each. King verdict 80-150 words. Red Team: one strike, King accepts or rebuts. Under 1k tokens.
-- **Full:** if sub-agents are available, spawn the seats in parallel as read-only workers on the cheap tier (with the owner's auto-route setup that is `route-read`/`explore`, pinned to grok-4.5; never pass a `model` argument, never use `grok-4.7-build-fast`). Give each worker the Crystal plus 3-4 seats to write independently (14 seats over 4 workers). One more read-only worker does the anonymous peer review (answers relabeled A-N). The King runs on the strongest tier: this session if it is on grok-4.7, else one `route-hard`/`plan` worker. Red Team: one read-only worker that sees only the draft verdict. Depth limit is 1: workers never spawn. No sub-agents available: run everything in one lean pass here.
+## 3. Who runs where
+Do not run a Quick Council for a city decision.
+- **Full:** if sub-agents are available, spawn the seats in parallel as read-only workers on the cheap tier (with the owner's auto-route setup that is `route-read`, never pass a `model` argument, never use a fast premium variant). Give each worker the Crystal plus 3-4 seats to write independently (14 seats over 4 workers). One more read-only worker does the anonymous peer review (answers relabeled A-N). The King runs on the strongest tier: this session if it is on grok-4.7, else one `route-hard` worker. Red Team: one read-only worker that sees only the draft verdict. Depth limit is 1: workers never spawn. No sub-agents available: run everything in one pass here, and each seat still writes its own reason.
 
 ## 4. Seats (0-13)
 0 Devil's Advocate, 1 Fresh Eyes, 2 Pessimist, 3 Optimist, 4 Pragmatist, 5 First-Principles (one back-of-envelope number), 6 Long-Term Strategist, 7 Domain Expert (state the field's consensus for this language/framework), 8 User Voice (the owner at his keyboard), 9 Risk Officer (worst case in concrete units: files lost, hours, dollars), 10 Resource Realist (tokens, time, what he is not doing instead), 11 Systems Thinker (one feedback loop), 12 Contrarian, 13 Historian (1-3 checkable prior cases).

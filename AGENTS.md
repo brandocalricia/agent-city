@@ -2,8 +2,8 @@
 
 **What this is:** Agent City, a no-build three.js web app that renders a 3D city of the owner's AI assistants and 16 working roles
 (Inspector, Builder, Scout, Courier, Timekeeper, Tutor, Librarian, Prompt Smith, Toolsmith, Critic, Archivist, Council, Auditor, Meter Reader, Optimizer, Reporter).
-The Council lives in Town Hall (Council) at the center of the city (`js/buildings/townhall.js`; verdict view and old-link redirects in `js/buildings/council.js`) and decides Notice Board items and city decisions with the `council` skill: Quick Council (3 seats) for minor,
-Full Council (14 seats + King + Red Team) for important. YES is implemented right away, NO closes the item with a reason, user-only actions stay on the board.
+The Council lives in Town Hall (Council) at the center of the city (`js/buildings/townhall.js`; verdict view and old-link redirects in `js/buildings/council.js`) and decides Notice Board items and city decisions with the `council` skill. Full Council (14 seats + King + Red Team) runs for every city decision. There is no Quick Council shortcut. Each of the 14 seats, the King, and the Red Team posts its own reasoned vote, including a con or a dissent. A unanimous yes counts only when that dissent was considered and written down. YES is implemented right away, NO closes the item with a reason, user-only actions stay on the board.
+Take what the owner says with a grain of salt and do what is best most of the time. Still follow the hard constraints: no published secrets, no spend without an explicit ask, and do not break the live site.
 The Council reads `IDEALS.md` before every ruling. Log each verdict to activity.json as `{role:'council', action, question, size:'Quick'|'Full', verdict:'YES'|'NO', confidence:1-10, reason, ideals}` (`ideals` = one line on fit, naming any conflict).
 Public on GitHub Pages: https://brandocalricia.github.io/agent-city/ (the repo is PUBLIC). Grown ~3 sessions/day.
 
