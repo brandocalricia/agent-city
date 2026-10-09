@@ -70,6 +70,8 @@ in the same commit: a stale manifest makes owners' updaters reject the new files
 
 **Regenerate data:** `python3 build_data.py` (stdlib only). Off the Grok box the agent-data paths don't exist, so skills/agents/routines come out empty.
 
+**Red provider:** If any free-lane provider goes red, shows a warning, or logs an elevated failure rate, that is top priority. Diagnose it before the next queue item. Fix the config, or post BLOCKED with the status code and the error text and no secrets. Retest with one live call and real token counts. While it is down, send work to the healthy free lanes. A 401 or 403 means the owner re-enters the key in the provider settings, never in chat. "Max turns reached" is the runner's own cap, not an owner outage: raise the cap or split the task, and do not wait 10 minutes.
+
 **Rules:** one small increment per session; real data only (empty states instead of fake data); personal email/calendar content,
 sender names, and amounts never go into pushed files; push only changed files; bump `City.version` in `js/manifest.js`; keep it fast on laptops
 (merge/instance geometry, no extra dynamic lights, respect the `Q` saver toggle).
