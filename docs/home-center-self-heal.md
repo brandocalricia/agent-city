@@ -15,3 +15,9 @@ attempt when the center has shown an error for more than 2 minutes.
 
 `tests/test_home_error_heal.py` fails if an error older than 2 minutes
 has no heal attempt inside 60 seconds.
+
+The center script is cached for a year. A patch that keeps the same file
+name can stay invisible. `tests/test_home_center_asset.py` reads the Home
+loadable manifest, fetches that chunk, and fails if the center still uses
+`border-primary` or `#e54d5e`, or if an empty error does not map to emerald.
+It also fails if `sw.js` fetches `/_next/` without `cache: "no-store"`.
