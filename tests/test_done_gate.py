@@ -11,8 +11,10 @@ from done_gate import (  # noqa: E402
     blocked_has_lane_detail,
     command_a_may_post,
     newer_open_rejection,
+    post_worker_done,
     recur_done_evidence,
     strike_decision,
+    worker_cannot_post,
 )
 
 FIXTURES = Path(__file__).resolve().parent / "fixtures"
@@ -20,26 +22,24 @@ BAD_IDS = ("gdb9recur1", "gdb9recur1-2", "gdb9recur1-3", "gdb9recur1-4")
 
 
 def main():
-    decision = strike_decision(
-        2,
-        "\n".join(
-            [
-                "refusal with no evidence",
-                "model: command-a-03-2025",
-                "lane: cohere/command-a-03-2025 HTTP 200",
-                "step: b9mods1bre1",
-                "log: timeout noted",
-            ]
-        ),
-        "",
-        1000,
+    step = "\n".join(
+        [
+            "refusal with no evidence",
+            "model: command-a-03-2025",
+            "lane: cohere/command-a-03-2025 HTTP 200",
+            "step: b9mods1bre1",
+            "log: timeout noted",
+        ]
     )
-    assert decision["action"] == "retry", decision
-    assert decision["retry_after"] is None, decision
-    assert decision["post_blocked"] is False, decision
-    assert decision["split"] is True, decision
+    first = strike_decision(0, step, "", 1000)
+    second = strike_decision(first["fail_count"], step, "", 1000)
+    assert first["action"] == "retry" and first["retry_after"] is None, first
+    assert first["split"] is False, first
+    assert second["action"] == "retry" and second["retry_after"] is None, second
+    assert second["split"] is True, second
+    assert second["post_blocked"] is False, second
     print("PASS refusal fails over at once")
-    print("PASS the same step splits the prompt after two refusals")
+    print("PASS two refusals on the same step split the prompt and one refusal does not")
 
     bare = strike_decision(2, "headless exit 1", "", 1000)
     assert bare["action"] == "retry", bare
@@ -83,6 +83,31 @@ def main():
     assert command_a_may_post(lane, good) is True
     assert command_a_may_post("lane: main grok-4.7-build", "HTTP 200 and a real count") is True
     print("PASS command-a-03-2025 cannot post a DONE until the draft passes the gate")
+
+    other = "The dashboard is done and everything passed."
+    assert approve_worker_done("b9mods1", other) is False
+    print("PASS a non-b9recur bad draft is refused")
+
+    posted = []
+
+    def capture(body):
+        posted.append(body)
+        return True
+
+    assert post_worker_done("b9mods1", other, capture, done_id="gdb9mods1") is False
+    assert posted == []
+    live = "As-of 2026-10-09T21:53:36Z\nPASS live reading total 8565050\n"
+    assert post_worker_done("b9mods1", live, capture, done_id="gdb9mods1") is True
+    assert len(posted) == 1 and "\nDONE\n" in posted[0]
+    print("PASS a bad worker draft is not posted")
+
+    prompt = "Do not post to the Channel. Do not run gh. You have no Channel token."
+    command = ["caffeinate", "-i", "grok", "--prompt-file", "task.md", "--no-subagents"]
+    clean = {"PATH": "/usr/bin", "AGENT_CITY_HEADLESS": "1"}
+    assert worker_cannot_post(command, clean, prompt) is True
+    assert worker_cannot_post(command, {"GH_TOKEN": "nope"}, prompt) is False
+    assert worker_cannot_post(command + ["gh", "api"], clean, prompt) is False
+    print("PASS a worker process has no Channel token and no post call")
 
 
 if __name__ == "__main__":
