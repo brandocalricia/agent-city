@@ -30,7 +30,13 @@ class Omniroute(unittest.TestCase):
         self.assertEqual(o["last"]["in"], 208)
         self.assertEqual(o["last"]["out"], 80)
         self.assertEqual(o["lanes"]["local"], 1)
-        self.assertEqual(o["lanes"]["remote_free"], 3)
+        self.assertEqual(o["lanes"]["remote_free"], 4)
+        names = [p["name"] for p in o["providers"]]
+        self.assertIn("Kilo Gateway", names)
+        self.assertIn("OVHcloud", names)
+        cere = next(p for p in o["providers"] if p["name"] == "Cerebras")
+        self.assertEqual(cere["state"], "inactive")
+        self.assertEqual(cere["chat"], "down")
         with Sandbox([]) as d:
             os.makedirs(os.path.join(d, "data"))
             shutil.copy(path, os.path.join(d, "data", "omniroute.json"))

@@ -14,13 +14,13 @@
   "providers": [
     {
       "name": "Cerebras",
-      "state": "up",
-      "chat": "up",
-      "priority": 1,
-      "free_models": 2,
-      "pool_models": 1,
+      "state": "inactive",
+      "chat": "down",
+      "priority": 80,
+      "free_models": 0,
+      "pool_models": 0,
       "model": "qwen-3.8-27b",
-      "note": "chat pass on qwen-3.8-27b at cost 0. gpt-oss-120b also answers; its cost estimate was non-zero, so it stays out of the default pool. Two catalog ids 404 and are excluded."
+      "note": "Two chat calls returned 403. A direct call returned Cloudflare error 1010. Set inactive and moved out of the pool. No card added."
     },
     {
       "name": "NVIDIA NIM",
@@ -28,15 +28,33 @@
       "chat": "up",
       "priority": 2,
       "free_models": 11,
-      "note": "11 chat models in the pool. 11 non-chat models excluded. Super chat pass at cost 0."
+      "note": "11 chat models in the pool. 11 non-chat models excluded. kimi-k3 replied pong in 1172 ms. deepseek-v4-flash-0731 returned 410 model_shutdown. glm-5.3 and kimi-k2.6 are not in this catalog. nemotron-3-ultra-550b-a55b is listed."
+    },
+    {
+      "name": "Kilo Gateway",
+      "state": "up",
+      "chat": "up",
+      "priority": 4,
+      "free_models": 4,
+      "model": "kilo-auto/free",
+      "note": "No-credential lane. Paid auto routes excluded. kilo-auto/free returned HTTP 200 in 10946 ms with an empty visible reply."
+    },
+    {
+      "name": "OVHcloud",
+      "state": "up",
+      "chat": "up",
+      "priority": 5,
+      "free_models": 3,
+      "model": "Mistral-Small-3.2-24B-Instruct-2506",
+      "note": "Anonymous lane. Mistral Small replied pong in 838 ms. Llama 3.3 70B returned 429. Qwen3.6-27B is not in the live catalog. gpt-oss ids stay excluded."
     },
     {
       "name": "OpenRouter",
       "state": "up",
       "chat": "up",
-      "priority": 3,
+      "priority": 6,
       "free_models": 14,
-      "note": "14 free chat models in the pool. Paid catalog models are not in the pool. One free model was cooling down; a different free model passed at cost 0."
+      "note": "14 free chat models in the pool. north-mini-code replied pong in 6679 ms. gemma-4-31b-it was cooling down (429). The free router id answered HTTP 200 with an empty visible reply."
     },
     {
       "name": "llama.cpp",
@@ -106,7 +124,7 @@
   },
   "lanes": {
     "local": 1,
-    "remote_free": 3,
+    "remote_free": 4,
     "grok": 0
   },
   "quota": {
@@ -118,12 +136,25 @@
     "minimal_when_healthy": 0
   },
   "routing": {
-    "coding": "auto/coding quality-first",
+    "coding": "nvidia first, then kilo, ovh, openrouter",
     "draft": "auto/offline offline-friendly",
     "high_stakes": "grok",
-    "retry": "one stronger free model, then paced Grok"
+    "retry": "one stronger free model, then paced Grok",
+    "order": "nvidia, kilo-gateway, ovhcloud, openrouter, llama.cpp"
   },
   "routed_free": 20817,
+  "waiting_on_owner": ["gemini", "groq", "mistral", "cloudflare", "zai", "longcat", "cohere", "llm7"],
+  "lane_checks": [
+    {"provider": "cerebras", "model": "qwen-3.8-27b", "ok": false, "http": 403, "ms": 21335},
+    {"provider": "nvidia", "model": "moonshotai/kimi-k3", "ok": true, "http": 200, "ms": 1172, "reply": "pong", "in": 93, "out": 17},
+    {"provider": "nvidia", "model": "deepseek-ai/deepseek-v4-flash-0731", "ok": false, "http": 410, "ms": 131},
+    {"provider": "openrouter", "model": "google/gemma-4-31b-it:free", "ok": false, "http": 429, "ms": 39724},
+    {"provider": "openrouter", "model": "cohere/north-mini-code:free", "ok": true, "http": 200, "ms": 6679, "reply": "pong", "in": 7, "out": 26},
+    {"provider": "openrouter", "model": "openrouter/free", "ok": true, "http": 200, "reply_visible": false},
+    {"provider": "kilo-gateway", "model": "kilo-auto/free", "ok": true, "http": 200, "ms": 10946, "reply_visible": false, "in": 28, "out": 16},
+    {"provider": "ovhcloud", "model": "Meta-Llama-3_3-70B-Instruct", "ok": false, "http": 429, "ms": 17848},
+    {"provider": "ovhcloud", "model": "Mistral-Small-3.2-24B-Instruct-2506", "ok": true, "http": 200, "ms": 838, "reply": "pong", "in": 11, "out": 3}
+  ],
   "measured_turn": {
     "provider": "cerebras",
     "model": "qwen-3.8-27b",

@@ -1,5 +1,11 @@
 # Agent City - Changelog
 
+## 2026-10-09 - Free lanes after a live check
+- Cerebras is inactive after two chat calls returned 403 (direct call: Cloudflare 1010). No card added
+- Kilo Gateway (no credential, paid auto routes excluded) and OVH anonymous are in the pool. OVH Mistral Small replied; gpt-oss stays excluded
+- NVIDIA kimi-k3 and OpenRouter north-mini-code replied. Routing order is nvidia, kilo, ovh, openrouter, then the local model. Gemini, Groq, Mistral, Cloudflare, Z.ai, Longcat, Cohere, and LLM7 still wait for the owner
+- Site version `2026-10-09a`
+
 ## 2026-10-08 - Channel PR + thread-only link (no webhook required)
 - Pacing counts ad-hoc from every Grok Bot (e.g. Q1 DU Tutor / Math Tutor `source: math-tutor`); `pace.py` prints sessions / Agent City ad-hoc / math-tutor / other (reading drift); evening session report includes that breakdown
 - Message channel is now an open **pull request** titled Channel in `agent-city-comms` (not an issue), so Agent City's PR-comment listener wakes instantly; `comms.py` finds it by title or creates branch `channel` + `channel/README.md` + `gh pr create`

@@ -565,5 +565,12 @@
     "confidence": 7,
     "reason": "Keeps the Morning Brief and Study Hall fresh after a failed session while staying inside this session's M budget",
     "ideals": "Seamless (3), useful (2), token-light (4)"
+  },
+  {
+    "date": "2026-10-09",
+    "session": "Free lanes",
+    "role": "auditor",
+    "action": "Checked free lanes and took Cerebras out of the pool after two 403s",
+    "details": "NVIDIA kimi-k3, OpenRouter north-mini-code, and OVH Mistral Small each replied pong. Kilo free router returned HTTP 200 with an empty visible reply. Paid Kilo auto routes are excluded. gpt-oss stays out of the OVH pool. Eight providers still wait for an owner credential."
   }
 ]
