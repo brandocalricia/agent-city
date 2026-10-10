@@ -1,0 +1,131 @@
+--- /Users/brandonniehaus/.agent-city/backup/validateQuality.ts.bak-b9recur1-20261009T211416Z	2026-10-09 15:14:16
++++ /opt/homebrew/lib/node_modules/omniroute/open-sse/services/combo/validateQuality.ts	2026-10-09 15:15:03
+@@ -32,8 +32,49 @@
+  */
+ function isTinyBudgetTruncation(completionTokens: number): boolean {
+   return completionTokens > 0 && completionTokens < REASONING_BUFFER_MIN_TRIGGER;
++}
++
++function choiceBag(choice: unknown): Record<string, unknown> | null {
++  if (!choice || typeof choice !== "object") return null;
++  const record = choice as Record<string, unknown>;
++  const delta = record.delta;
++  const message = record.message;
++  if (delta && typeof delta === "object" && !Array.isArray(delta)) {
++    return delta as Record<string, unknown>;
++  }
++  if (message && typeof message === "object" && !Array.isArray(message)) {
++    return message as Record<string, unknown>;
++  }
++  return null;
++}
++
++function chunkHasVisibleOutput(parsed: Record<string, unknown>): boolean {
++  if (!Array.isArray(parsed.choices)) return false;
++  return parsed.choices.some((choice) => {
++    const bag = choiceBag(choice);
++    if (!bag) return false;
++    if (typeof bag.content === "string" && bag.content.length > 0) return true;
++    return Array.isArray(bag.tool_calls) && bag.tool_calls.length > 0;
++  });
++}
++
++function chunkHasReasoning(parsed: Record<string, unknown>): boolean {
++  if (!Array.isArray(parsed.choices)) return false;
++  return parsed.choices.some((choice) => {
++    const bag = choiceBag(choice);
++    if (!bag) return false;
++    const reasoning = bag.reasoning_content ?? bag.reasoning;
++    return typeof reasoning === "string" && reasoning.trim().length > 0;
++  });
+ }
+ 
++function chunkOutputCount(parsed: Record<string, unknown>): number | null {
++  const usage = parsed.usage;
++  if (!usage || typeof usage !== "object" || Array.isArray(usage)) return null;
++  const count = Number((usage as Record<string, unknown>).completion_tokens);
++  return Number.isFinite(count) ? count : null;
++}
++
+ /**
+  * Detects tool_calls entries within one assistant message that repeat the
+  * exact same function name + arguments verbatim -- always a bug (no
+@@ -418,6 +459,12 @@
+     let sawStructuredSSE = false;
+     let upstreamFailure: StreamingUpstreamFailure | null = null;
+     let sawTerminator = false;
++    // An HTTP 200 stream that only carries reasoning, with no visible content
++    // and an output count of 0, is a failed turn. Keep peeking until content,
++    // a tool call, or the terminal usage chunk.
++    let sawVisibleOutput = false;
++    let sawReasoningOnly = false;
++    let lastOutputCount: number | null = null;
+     const sseLineNormalizer = createSSEDataLineNormalizer();
+     let pendingEventType = "";
+ 
+@@ -504,7 +551,17 @@
+         if (isTerminalUsageOnlyChunk(parsed, eventType)) sawTerminator = true;
+ 
+         if (isKnownNonClaudeStreamPayload(parsed, eventType)) {
+-          return "content";
++          if (Array.isArray(parsed.choices)) {
++            const outCount = chunkOutputCount(parsed);
++            if (outCount !== null) lastOutputCount = outCount;
++            if (chunkHasVisibleOutput(parsed)) {
++              sawVisibleOutput = true;
++              return "content";
++            }
++            if (chunkHasReasoning(parsed)) sawReasoningOnly = true;
++          } else {
++            return "content";
++          }
+         }
+ 
+         if (applySseLifecycleEvent(eventType, parsed, sse)) {
+@@ -599,6 +656,18 @@
+               reason,
+               ...(upstreamFailure ? { upstreamFailure } : {}),
+             };
++          }
++
++          if (
++            sawReasoningOnly &&
++            !sawVisibleOutput &&
++            (lastOutputCount === null || lastOutputCount === 0)
++          ) {
++            log.warn?.(
++              "COMBO",
++              "Streaming HTTP 200 ended with empty content and output count 0 — marking as invalid for combo failover"
++            );
++            return { valid: false, reason: "HTTP 200 with empty content and output count 0" };
+           }
+ 
+           if (sse.hasMessageStart && sse.hasLifecycleEnd && !sse.hasRealContent) {
+@@ -897,6 +966,19 @@
+   const specViolation = findToolCallSpecViolation(json);
+   if (specViolation) {
+     return { valid: false, reason: specViolation };
++  }
++
++  const contentIsEmpty =
++    content === null ||
++    content === undefined ||
++    content === "" ||
++    (typeof content === "string" && content.trim().length === 0);
++  if (contentIsEmpty && !hasToolCalls) {
++    const usageNow = json?.usage as Record<string, unknown> | undefined;
++    const completionNow = usageNow ? Number(usageNow.completion_tokens) || 0 : 0;
++    if (completionNow === 0) {
++      return { valid: false, reason: "HTTP 200 with empty content and output count 0" };
++    }
+   }
+ 
+   if (!hasContent && !hasToolCalls) {
+@@ -922,7 +1004,6 @@
+   // empty but reasoning_content exists, and usage shows reasoning consumed nearly
+   // all completion tokens, treat as invalid so the combo loop retries with more
+   // tokens or falls back to a non-reasoning model.
+-  const contentIsEmpty = content === null || content === undefined || content === "";
+   if (contentIsEmpty && hasReasoningContent && !hasToolCalls) {
+     // The 90%-of-completion-tokens ratio below is a proxy for "the request was
+     // truncated mid-reasoning" for providers that don't report finish_reason

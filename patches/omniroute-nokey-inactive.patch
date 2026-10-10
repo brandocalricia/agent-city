@@ -1,0 +1,83 @@
+diff -ruN a/src/lib/db/providers.ts b/src/lib/db/providers.ts
+--- a/src/lib/db/providers.ts	2026-10-09 16:23:51
++++ b/src/lib/db/providers.ts	2026-10-09 16:23:51
+@@ -472,6 +472,26 @@
+   return null;
+ }
+ 
++const KEYLESS_NO_KEY_PROVIDERS = new Set(["duckduckgo-web"]);
++
++/** A keyed provider with no stored key must not be routable or shown as an error. */
++export function unkeyedApikeyConnection(data: {
++  provider?: unknown;
++  authType?: unknown;
++  apiKey?: unknown;
++  accessToken?: unknown;
++}): boolean {
++  const provider = typeof data.provider === "string" ? data.provider : "";
++  if (KEYLESS_NO_KEY_PROVIDERS.has(provider) || isCompatibleProviderConnectionId(provider)) {
++    return false;
++  }
++  const auth = typeof data.authType === "string" ? data.authType : "";
++  if (auth !== "apikey") return false;
++  const apiKey = typeof data.apiKey === "string" ? data.apiKey.trim() : "";
++  const access = typeof data.accessToken === "string" ? data.accessToken.trim() : "";
++  return apiKey.length === 0 && access.length === 0;
++}
++
+ export async function createProviderConnection(data: JsonRecord) {
+   await assertApiKeyIsNotManagementPassword(data.apiKey);
+   const db = getDbInstance() as unknown as DbLike;
+@@ -745,6 +765,13 @@
+       connection[field] = data[field];
+     }
+   }
++  if (unkeyedApikeyConnection(connection)) {
++    connection.isActive = false;
++    connection.testStatus = "inactive";
++    connection.errorCode = null;
++    connection.lastError = null;
++    connection.lastErrorType = null;
++  }
+   if (normalizedProviderSpecificData && Object.keys(normalizedProviderSpecificData).length > 0) {
+     connection.providerSpecificData = normalizedProviderSpecificData;
+   }
+@@ -892,7 +919,8 @@
+     name: data.name || null,
+     email: data.email || null,
+     priority: data.priority || 0,
+-    isActive: data.isActive === false ? 0 : 1,
++    isActive:
++      "apiKey" in data && unkeyedApikeyConnection(data) ? 0 : data.isActive === false ? 0 : 1,
+     accessToken: data.accessToken || null,
+     refreshToken: data.refreshToken || null,
+     expiresAt: data.expiresAt || null,
+@@ -997,6 +1025,16 @@
+       existingCamel.providerSpecificData
+     )
+   );
++  // A stored key that is cleared must leave the combo set and the error count.
++  if (unkeyedApikeyConnection(merged)) {
++    merged.isActive = false;
++    merged.testStatus = "inactive";
++    merged.errorCode = null;
++    merged.lastError = null;
++    merged.lastErrorAt = null;
++    merged.lastErrorType = null;
++    merged.lastErrorSource = null;
++  }
+   // Mirror the sanitization the create path applies — keep the returned
+   // object in lockstep with what we persist.
+   if ("quotaWindowThresholds" in merged) {
+diff -ruN a/src/lib/monitoring/observability.ts b/src/lib/monitoring/observability.ts
+--- a/src/lib/monitoring/observability.ts	2026-10-09 16:23:51
++++ b/src/lib/monitoring/observability.ts	2026-10-09 16:23:51
+@@ -283,7 +283,7 @@
+ ): number {
+   let count = 0;
+   for (const connection of connections) {
+-    if (connection.isActive === false) continue;
++    if (connection.isActive === false || connection.isActive === 0) continue;
+     const status = (connection.testStatus ?? "").trim().toLowerCase();
+     if (STICKY_DB_NON_OK_TEST_STATUS.has(status)) count += 1;
+   }

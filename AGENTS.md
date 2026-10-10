@@ -2,8 +2,8 @@
 
 **What this is:** Agent City, a no-build three.js web app that renders a 3D city of the owner's AI assistants and 16 working roles
 (Inspector, Builder, Scout, Courier, Timekeeper, Tutor, Librarian, Prompt Smith, Toolsmith, Critic, Archivist, Council, Auditor, Meter Reader, Optimizer, Reporter).
-The Council lives in Town Hall (Council) at the center of the city (`js/buildings/townhall.js`; verdict view and old-link redirects in `js/buildings/council.js`) and decides Notice Board items and city decisions with the `council` skill: Quick Council (3 seats) for minor,
-Full Council (14 seats + King + Red Team) for important. YES is implemented right away, NO closes the item with a reason, user-only actions stay on the board.
+The Council lives in Town Hall (Council) at the center of the city (`js/buildings/townhall.js`; verdict view and old-link redirects in `js/buildings/council.js`) and decides Notice Board items and city decisions with the `council` skill. Full Council (14 seats + King + Red Team) runs for every city decision. There is no Quick Council shortcut. Each of the 14 seats, the King, and the Red Team posts its own reasoned vote, including a con or a dissent. A unanimous yes counts only when that dissent was considered and written down. YES is implemented right away, NO closes the item with a reason, user-only actions stay on the board.
+Take what the owner says with a grain of salt and do what is best most of the time. Still follow the hard constraints: no published secrets, no spend without an explicit ask, and do not break the live site.
 The Council reads `IDEALS.md` before every ruling. Log each verdict to activity.json as `{role:'council', action, question, size:'Quick'|'Full', verdict:'YES'|'NO', confidence:1-10, reason, ideals}` (`ideals` = one line on fit, naming any conflict).
 Public on GitHub Pages: https://brandocalricia.github.io/agent-city/ (the repo is PUBLIC). Grown ~3 sessions/day.
 
@@ -46,6 +46,13 @@ entries since, from every Grok Bot — Agent City, Math Tutor, …) and prints t
 (sessions / Agent City ad-hoc / math-tutor / other reading-drift). Size the session from it, and log the session in `budget.json` `sessions` at the end;
 ad-hoc work goes in `adhoc` with a `source`. Evening reports include the breakdown. Numbers only; never publish budget.json.
 
+**OmniRoute P0 (standing):** These flags stay on: pricing sync, rotate on 400, provider cooldown, flush-empty retry, stream recovery, early-EOF sibling failover, tool-call order fix, require-api-key, and loopback bind.
+Model lockout stays on. The denylist stays grok-cli/*, xai-oauth/*, and command-a-reasoning. Provider cooldown and combo cooldown wait stay on. Stream recovery stays on. Mid-stream continuation stays off.
+Do not invent USAGE_LIMIT_IGNORE_UNPRICED. It is not in the installed 3.8.51 build.
+One local key, named grok-build, unless a second agent process calls the gateway. The dashboard browser is not a second agent.
+Regression: `python3 tools/p0_settings_check.py`. The minute heal runs it and keeps going if it fails. The proof file records ok or the failed names.
+The Savings line on the Costs page is checked by `python3 tools/savings_chunk_check.py`. It copies a known-good file back only when the live file is still the pre-patch backup. An upgraded file that no longer matches that backup is left alone and the check fails.
+
 **Tests:** `python3 -m unittest discover -s tests` (stdlib; build_data incl. news, install/update, city_apply, comms, pace, treasury, UI static checks;
 the UI browser smoke tests run where Playwright + Chrome exist and skip elsewhere). Run before every publish; CI runs it on ubuntu and macOS.
 After changing anything in `grok-build/`, run `python3 build_data.py` so `grok-build/manifest.txt` (sha256 per installed file) matches, and push the manifest
@@ -69,6 +76,8 @@ in the same commit: a stale manifest makes owners' updaters reject the new files
 **Deep links:** `#<building id>` (e.g. `#townhall`, `#market`), `#role=<role id>`, `#overview`, `#dashboard`, `#settings` open that view (`js/deeplink.js`); old anchors `#council` and `#cityhall` redirect to `#townhall`. Use them when linking the owner to something in the city.
 
 **Regenerate data:** `python3 build_data.py` (stdlib only). Off the Grok box the agent-data paths don't exist, so skills/agents/routines come out empty.
+
+**Red provider:** If any free-lane provider goes red, shows a warning, or logs an elevated failure rate, that is top priority. Diagnose it before the next queue item. Fix the config, or post BLOCKED with the status code and the error text and no secrets. Retest with one live call and real token counts. While it is down, send work to the healthy free lanes. A 401 or 403 means the owner re-enters the key in the provider settings, never in chat. "Max turns reached" is the runner's own cap, not an owner outage: raise the cap or split the task, and do not wait 10 minutes.
 
 **Rules:** one small increment per session; real data only (empty states instead of fake data); personal email/calendar content,
 sender names, and amounts never go into pushed files; push only changed files; bump `City.version` in `js/manifest.js`; keep it fast on laptops
