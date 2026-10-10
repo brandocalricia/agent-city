@@ -200,10 +200,18 @@ class CityWiring(unittest.TestCase):
     def test_every_role_has_a_loaded_building(self):
         roles = open(os.path.join(ROOT, "js", "roles.js"), encoding="utf-8").read()
         manifest = open(os.path.join(ROOT, "js", "manifest.js"), encoding="utf-8").read()
-        listed = re.search(r"\[([^\]]*)\]\.map\(b => `js/buildings/", manifest).group(1)
+        # New architecture: only 4 building JS files (townhall, council, treasury, newsroom) listed explicitly
+        # Other roles are desks in the SVG office, no per-building JS file needed
+        listed = re.findall(r"'(js/buildings/[\w-]+\.js)'", manifest)
+        listed_names = [os.path.basename(f).replace('.js', '') for f in listed]
+        kept_buildings = {'townhall', 'council', 'treasury', 'newsroom'}
         for rid, b in re.findall(r"\{ id: '([a-z]+)',[^\n]*?building: '([a-z]+)'", roles):
-            self.assertTrue(os.path.exists(os.path.join(ROOT, "js", "buildings", b + ".js")), f"{rid}: {b}.js missing")
-            self.assertIn("'%s'" % b, listed, f"{b} not in js/manifest.js")
+            if b in kept_buildings:
+                self.assertTrue(os.path.exists(os.path.join(ROOT, "js", "buildings", b + ".js")), f"{rid}: {b}.js missing")
+                self.assertIn(b, listed_names, f"{b} not in js/manifest.js")
+            else:
+                # Role maps to a desk in the SVG office — no separate building JS file
+                pass
         self.assertIn("'reporter'", roles)
         self.assertIn("id: 'watchman'", roles)  # GitHub watcher role (owner order t279u)
 

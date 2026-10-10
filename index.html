@@ -5,9 +5,9 @@
 <title>Agent City</title>
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#0d0f1a">
-<meta name="description" content="Agent City: a 3D city where AI agents live and work for the owner.">
+<meta name="description" content="Agent City: a top-down office where AI agents live and work for the owner.">
 <link rel="icon" href="data:,">
-<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/office.css">
 <script src="data.js"></script>
 <script>
   // private.js (gitignored) only exists on the local copy; never requested on the public site.
@@ -15,99 +15,40 @@
     document.write('<script src="private.js" onerror="void 0"><\/script>');
 </script>
 <script src="js/manifest.js"></script>
-<script type="importmap">
-{ "imports": {
-  "three": "https://cdn.jsdelivr.net/npm/three@0.165.0/build/three.module.js",
-  "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.165.0/examples/jsm/"
-} }
-</script>
 </head>
 <body>
-<div id="app"></div>
-<div id="loading" role="status" aria-live="polite"><div class="ld-card"><div class="ld-logo">🏙</div><div class="ld-title">Agent City</div><div class="ld-bar"><i id="ldBar"></i></div><div class="ld-msg" id="ldMsg">Loading the 3D engine…</div></div></div>
-<header id="topbar" class="glass" role="banner">
-  <div class="brand"><span class="logo" aria-hidden="true">🏙</span> Agent City <small id="dayTag"></small></div>
-  <button id="btnSearch" class="search" aria-label="Search buildings and roles (slash or Ctrl+K)"><span aria-hidden="true">🔍</span><span class="ph">Search buildings, roles…</span><kbd>/</kbd></button>
-  <nav class="tb-actions" aria-label="City controls">
-    <button id="btnDash" title="Dashboard (D)" aria-label="Dashboard">🏠<span class="lbl"> Dashboard</span></button>
-    <button id="btnOverview" title="Overview (0)" aria-label="Fly to overview">🗺<span class="lbl"> Overview</span></button>
-    <button id="btnWalk" title="Walk mode (Tab)" aria-label="Walk mode">🚶<span class="lbl"> Walk</span></button>
-    <button id="btnTime" title="Time of day (T)" aria-label="Time of day">🕒</button>
-    <button id="btnSettings" title="Settings (,)" aria-label="Settings">⚙️</button>
-    <button id="btnKeys" title="Keyboard shortcuts (?)" aria-label="Keyboard shortcuts">⌨️</button>
-  </nav>
-</header>
-<div id="chips" class="chips"></div>
-<div id="palette" role="dialog" aria-modal="true" aria-label="Quick jump"><div class="pal-box glass">
-  <input id="paletteInput" type="search" placeholder="Jump to a building, role, or view…" autocomplete="off" aria-controls="paletteList" aria-label="Search">
-  <ul id="paletteList" role="listbox"></ul>
-  <div class="pal-foot"><kbd>↑</kbd><kbd>↓</kbd> choose · <kbd>Enter</kbd> go · <kbd>Esc</kbd> close</div>
-</div></div>
-<div id="shortcuts" role="dialog" aria-modal="true" aria-label="Keyboard shortcuts"><div class="sc-box glass">
-  <button class="close" aria-label="Close">✕</button>
-  <h3>Keyboard shortcuts</h3>
-  <dl>
-    <dt><kbd>/</kbd> <kbd>Ctrl</kbd>+<kbd>K</kbd></dt><dd>Search and jump anywhere</dd>
-    <dt><kbd>D</kbd></dt><dd>Dashboard</dd>
-    <dt><kbd>0</kbd></dt><dd>Overview of the skyline</dd>
-    <dt><kbd>1</kbd>–<kbd>4</kbd></dt><dd>Library, Office, Town Hall (Council), Market</dd>
-    <dt><kbd>Tab</kbd></dt><dd>Walk mode: <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd>, mouse look, <kbd>Shift</kbd> run, <kbd>E</kbd> open</dd>
-    <dt><kbd>T</kbd></dt><dd>Time of day: live, day, dusk, night</dd>
-    <dt><kbd>Q</kbd></dt><dd>Graphics: high or saver</dd>
-    <dt><kbd>L</kbd></dt><dd>Labels on or off</dd>
-    <dt><kbd>,</kbd></dt><dd>Settings</dd>
-    <dt><kbd>?</kbd> <kbd>H</kbd></dt><dd>This list</dd>
-    <dt><kbd>Esc</kbd></dt><dd>Close</dd>
-  </dl>
-  <p class="mute">Mouse: drag to orbit, right-drag to pan, scroll to zoom, click anything. Touch: drag to orbit, pinch to zoom, two fingers to pan, tap to open.</p>
-</div></div>
-<div id="onboard" class="glass" role="dialog" aria-label="Welcome">
-  <h3>👋 Welcome to Agent City</h3>
-  <ul>
-    <li><b>Tap or click</b> any building or glowing character to see what it does and what it has done.</li>
-    <li><b>Town Hall</b> in the center is the hub: the Council rules there, and neon trails show finished work flying home.</li>
-    <li><b>Search</b> with <kbd>/</kbd> to jump anywhere; <b>🏠 Dashboard</b> shows the whole city at a glance.</li>
-  </ul>
-  <div class="row"><button id="onboardTour" class="primary">Open the dashboard</button><button id="onboardOk">Got it</button></div>
-</div>
+<div id="app" class="office-root"></div>
+
 <div id="toasts" aria-live="polite"></div>
-<canvas id="minimap" class="glass" width="180" height="180" title="Minimap: click to fly" aria-label="Minimap"></canvas>
-<aside id="panel" class="glass" role="dialog" aria-hidden="true"><button class="close" id="panelClose" aria-label="Close panel">✕</button><div id="panelBody"></div></aside>
-<div id="tip" class="glass"></div>
-<div id="crosshair"></div>
-<div id="walkhint" class="glass">Walk mode · click to look around · <kbd>E</kbd> interact · <kbd>Tab</kbd> back to orbit</div>
+
 <div id="err"><div id="errMsg"></div></div>
+
 <script>
-  function cityError(msg) { var e = document.getElementById('err'); e.style.display = 'flex';
-    document.getElementById('errMsg').innerHTML = '<h2>Agent City hit a snag</h2><p>' + msg + '</p>'; }
-  setTimeout(function () { if (!window.__cityStarted) cityError('Could not load the 3D engine. Agent City loads three.js from cdn.jsdelivr.net, so check your connection and reload.'); }, 15000);
+  function cityError(msg) {
+    var e = document.getElementById('err');
+    e.style.display = 'flex';
+    document.getElementById('errMsg').innerHTML = '<h2>Agent City hit a snag</h2><p>' + msg + '</p>';
+  }
+  setTimeout(function () {
+    if (!window.__cityStarted) cityError('Could not load the city. Check your connection and reload.');
+  }, 15000);
 </script>
-<script type="module">
-// Loader: three.js comes from the CDN as ES modules; the city's own code is plain scripts
-// (local ES module files are blocked on file://, plain scripts are not).
-import * as THREE from 'three';
-import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { PointerLockControls } from 'three/addons/controls/PointerLockControls.js';
-import { CSS2DRenderer, CSS2DObject } from 'three/addons/renderers/CSS2DRenderer.js';
-import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
-import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
-import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
-import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
-import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
-window.THREE = THREE;
-Object.assign(City.lib, { OrbitControls, PointerLockControls, CSS2DRenderer, CSS2DObject, mergeGeometries, EffectComposer, RenderPass, UnrealBloomPass, OutputPass });
-window.__cityStarted = true;
-window.addEventListener('error', e => cityError(String(e.message || e)));
-const bust = location.protocol === 'file:' ? '' : '?v=' + City.version;
-(async () => {
-  const bar = document.getElementById('ldBar'), msg = document.getElementById('ldMsg'); let n = 0;
-  if (msg) msg.textContent = 'Building the city…';
-  for (const f of City.files) await new Promise((ok, bad) => {
-    const s = document.createElement('script'); s.src = f + bust; s.onload = () => { if (bar) bar.style.width = Math.round(++n / City.files.length * 100) + '%'; ok(); };
-    s.onerror = () => bad(new Error('Could not load ' + f)); document.body.appendChild(s);
-  });
-  City.main();
-})().catch(e => cityError(e.message));
+<script>
+  (function () {
+    window.__cityStarted = true;
+    window.addEventListener('error', e => cityError(String(e.message || e)));
+    const bust = location.protocol === 'file:' ? '' : '?v=' + City.version;
+    (async () => {
+      for (const f of City.files) await new Promise((ok, bad) => {
+        const s = document.createElement('script');
+        s.src = f + bust;
+        s.onload = () => ok();
+        s.onerror = () => bad(new Error('Could not load ' + f));
+        document.body.appendChild(s);
+      });
+      // City.main() is now City.office.init() called automatically by office.js
+    })().catch(e => cityError(e.message));
+  })();
 </script>
 </body>
 </html>
