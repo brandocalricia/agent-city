@@ -14,4 +14,5 @@ fi
 python3 "$HERE/analytics_savings_refresh.py" >/dev/null 2>&1 || true
 python3 "$HERE/p0_settings_check.py" || true
 python3 "$HERE/savings_chunk_check.py" || true
+python3 "$HERE/guard_alert.py" || true
 exit 0

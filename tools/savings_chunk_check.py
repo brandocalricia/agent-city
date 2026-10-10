@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
 """Fail if an upgrade wipes the Savings line. Re-apply only onto the pre-patch file."""
 
+import json
 import os
 import shutil
 import sys
+from datetime import datetime, timezone
 from pathlib import Path
 
 BACKUP = Path.home() / ".agent-city" / "backup"
@@ -123,6 +125,21 @@ def check_one(item, apply):
     return action
 
 
+def write_proof(ok, failed):
+    proof = Path.home() / ".agent-city" / "proofs" / "savings-chunk.json"
+    proof.parent.mkdir(parents=True, exist_ok=True)
+    handle = os.open(str(proof), os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
+    try:
+        body = {
+            "ok": ok,
+            "failed": failed,
+            "checkedAt": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+        }
+        os.write(handle, (json.dumps(body, indent=2) + "\n").encode())
+    finally:
+        os.close(handle)
+
+
 def main(argv):
     if "--save-good" in argv:
         saved = save_good()
@@ -137,6 +154,11 @@ def main(argv):
             failed.append(item["name"])
         elif action == "reapplied":
             reapplied.append(item["name"])
+    try:
+        write_proof(not failed, failed)
+    except Exception:
+        print("savings-chunk fail: check-error")
+        return 1
     if failed:
         print("savings-chunk fail: " + ",".join(failed))
         return 1
