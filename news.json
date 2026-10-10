@@ -1,5 +1,63 @@
 [
   {
+    "date": "2026-10-10",
+    "title": "Grok Bot adds its own email addresses on a grokbot.com mail domain",
+    "url": "https://x.com/i/trending/2108278829924118989",
+    "source": "X News (summary of posts)",
+    "tag": "grok",
+    "for": [
+      "council"
+    ],
+    "why": "Summary: bots can now claim an inbox and contact businesses themselves; any city use stays behind the Council and the owner's no-send-unasked rule."
+  },
+  {
+    "date": "2026-10-10",
+    "title": "Leaked XPass tiers would bundle X Premium, SuperGrok, Cursor and Grok Bot in one shared usage pool",
+    "url": "https://x.com/i/trending/2108385763071000885",
+    "source": "X News (summary of posts, unconfirmed leak)",
+    "tag": "tokens",
+    "for": [
+      "council",
+      "gb"
+    ],
+    "why": "Summary: if real, Grok Build and Grok Bot quotas could merge, which would change how the Treasury paces both pools. Watch for an official announcement before acting."
+  },
+  {
+    "date": "2026-10-10",
+    "title": "PersonalAgentBench scores agents on real-account tasks for completion and trust",
+    "url": "https://x.com/i/trending/2107512257957462316",
+    "source": "X News (summary of posts)",
+    "tag": "agents",
+    "for": [
+      "council",
+      "scout"
+    ],
+    "why": "Summary: a trust-plus-completion benchmark is a useful yardstick for the city's own agents; the Critic can borrow its two-axis scoring."
+  },
+  {
+    "date": "2026-10-10",
+    "title": "Release workflow run end to end by coordinated Grok Bots in Slack",
+    "url": "https://x.com/i/trending/2107586232075403441",
+    "source": "X News (summary of posts)",
+    "tag": "agents",
+    "for": [
+      "promptsmith",
+      "gb"
+    ],
+    "why": "Summary: a release bot delegating builds, fuzz swarms and fixes to an engineer bot mirrors the city's Grok Bot to Grok Build Channel handoff, with humans approving only the final step."
+  },
+  {
+    "date": "2026-10-10",
+    "title": "Grok 4.7 tops VulcanBench coding and the Artificial Analysis Cyber Index",
+    "url": "https://x.com/i/trending/2106666031037223269",
+    "source": "X News (summary of posts)",
+    "tag": "model",
+    "for": [
+      "gb"
+    ],
+    "why": "Summary: Grok 4.7 stays the strongest main lane for hard Grok Build tasks, so free OmniRoute lanes should take routine work and Main Grok only the hard turns."
+  },
+  {
     "date": "2026-10-09",
     "title": "Grok Build 1.0.50: worktree rm refuses dirty or in-use worktrees without -f",
     "url": "https://x.ai/build/changelog",
