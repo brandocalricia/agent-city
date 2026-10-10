@@ -46,6 +46,13 @@ entries since, from every Grok Bot — Agent City, Math Tutor, …) and prints t
 (sessions / Agent City ad-hoc / math-tutor / other reading-drift). Size the session from it, and log the session in `budget.json` `sessions` at the end;
 ad-hoc work goes in `adhoc` with a `source`. Evening reports include the breakdown. Numbers only; never publish budget.json.
 
+**OmniRoute P0 (standing):** These flags stay on: pricing sync, rotate on 400, provider cooldown, flush-empty retry, stream recovery, early-EOF sibling failover, tool-call order fix, require-api-key, and loopback bind.
+Model lockout stays on. The denylist stays grok-cli/*, xai-oauth/*, and command-a-reasoning. Provider cooldown and combo cooldown wait stay on. Stream recovery stays on. Mid-stream continuation stays off.
+Do not invent USAGE_LIMIT_IGNORE_UNPRICED. It is not in the installed 3.8.51 build.
+One local key, named grok-build, unless a second agent process calls the gateway. The dashboard browser is not a second agent.
+Regression: `python3 tools/p0_settings_check.py`. The minute heal runs it and keeps going if it fails. The proof file records ok or the failed names.
+The Savings line on the Costs page is checked by `python3 tools/savings_chunk_check.py`. It copies a known-good file back only when the live file is still the pre-patch backup. An upgraded file that no longer matches that backup is left alone and the check fails.
+
 **Tests:** `python3 -m unittest discover -s tests` (stdlib; build_data incl. news, install/update, city_apply, comms, pace, treasury, UI static checks;
 the UI browser smoke tests run where Playwright + Chrome exist and skip elsewhere). Run before every publish; CI runs it on ubuntu and macOS.
 After changing anything in `grok-build/`, run `python3 build_data.py` so `grok-build/manifest.txt` (sha256 per installed file) matches, and push the manifest

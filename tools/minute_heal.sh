@@ -12,4 +12,6 @@ if [ "$home_rc" -ne 0 ] || [ "$nokey_rc" -ne 0 ]; then
 fi
 # Refresh the local savings reading. A failure here must not fail the heal.
 python3 "$HERE/analytics_savings_refresh.py" >/dev/null 2>&1 || true
+python3 "$HERE/p0_settings_check.py" || true
+python3 "$HERE/savings_chunk_check.py" || true
 exit 0
