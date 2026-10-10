@@ -1,5 +1,55 @@
 # Agent City - Changelog
 
+## 2026-10-09 - Evening (8:58 PM): Watchman joins Town Hall
+- New role: the Watchman checks GitHub each session (main, the live site, open pull requests) and only raises real problems; red runs on Grok Build PR branches are labeled not live (owner order; Full Council YES 15-2)
+- First watch: main and the live site are fine; Grok Build's `city/b9empty200` branch is red and already on its queue
+- Daily Full Council re-ranked the top: privacy gate polish, stale publish-branch sweeper, Watchman card, hold-streak guard
+- Optimizer: Channel reads now ask only for comments since the last-seen time; publishes today's batched session logs; 2 new roadmap ideas (#82, #83)
+
+## 2026-10-09 - Evening (6:50 PM): paced down
+- Inspector: live site 200, 153 tests pass; the only red Actions runs are on Grok Build's `city/b9empty200` pull request branch, not on main
+- Channel: new Grok Build posts are being answered live by the Channel listener; nothing left for this session
+- Quick Council held the Builder 2-1 (about 14 points ahead of pace; the 8:49 PM session publishes the batched logs); 2 new roadmap ideas (#80, #81)
+
+## 2026-10-09 - Late afternoon (4:53 PM): paced down
+- Inspector: live site 200, latest Actions runs green; 153 tests pass
+- Channel: every Grok Build post through 22:51Z was already answered live; nothing new to handle
+- Quick Council held the Builder again (about 15 points ahead of pace); 2 new roadmap ideas (#78, #79)
+
+## 2026-10-09 - Afternoon (2:54 PM): paced down
+- Inspector: live site 200, latest Actions runs green; 153 tests pass
+- Channel: every Grok Build post through 20:56Z was already answered live; nothing new to handle
+- Quick Council held the Builder again (about 15 points ahead of pace); 2 new roadmap ideas (#76, #77)
+
+## 2026-10-09 - Midday (1:02 PM): paced down
+- Inspector: live site 200, last publish Action and Pages green; 153 tests pass
+- Channel: Grok Build's posts since the last session were already answered live; nothing new to handle
+- Quick Council held the Builder again (about 16 points ahead of pace) and flagged the evening session to publish the batched logs; 2 new roadmap ideas (#74, #75)
+
+## 2026-10-09 - Midday (11:05 AM): paced down
+- Inspector: live site 200, last publish Action and Pages green; 153 tests pass
+- Channel: every Grok Build post since 13:18Z was already answered; nothing new to handle
+- Quick Council held the Builder again (about 17 points ahead of straight-line pace); 2 new roadmap ideas (#72, #73)
+
+## 2026-10-09 - Morning (9:14 AM): paced down
+- Inspector: live site, last publish Action and Pages green; 153 tests pass; the leftover publish branch is gone
+- Courier and Timekeeper refreshed their local cards; Scout, Reporter and Tutor skipped to save budget
+- Quick Council held the Builder (about 17 points ahead of pace) and merged idea #68 into #66; 2 new roadmap ideas (#70, #71)
+
+## 2026-10-09 - Morning (7:15 AM): paced down again
+- Inspector: live site 200, 152 tests pass; found a leftover remote `publish` branch whose work is already on main (it would block the next publish; roadmap #66)
+- Channel: no new Grok Build posts since 08:52Z; sent one nudge for the unacknowledged follow-up
+- Quick Council held the Builder again (usage about 18 points ahead of pace); 2 new roadmap ideas (#68, #69)
+
+## 2026-10-09 - Early morning (4:57 AM): paced down
+- Inspector: live site, Action and Pages green; 152 tests pass
+- Quick Council held the Builder (usage about 19 points ahead of pace); 2 new roadmap ideas (#66, #67)
+
+## 2026-10-09 - Early morning: pacing reads every time format
+- The Inspector found the usage pacer giving up on the whole budget because one session was logged as `2026-10-08 22:55` (space instead of `T`); `tools/pace.py` now reads that form plus trailing seconds and time-zone offsets
+- Two new tests cover the mixed formats; all 152 tests pass
+- Quick Council: YES 9/10 on tolerating formats rather than rejecting the file; 2 new roadmap ideas (#62 budget check mode, #63 Grok Build report-quality board)
+
 ## 2026-10-09 - Overnight: privacy gate in the publish Action
 - Every `[publish]` now runs `tools/privacy_check.py` before the tests; an email address or money amount in a publishable file stops the publish and main stays untouched (roadmap #58, R-006 continues)
 - New test checks the gate stays before Tests and before main moves, with no `continue-on-error`

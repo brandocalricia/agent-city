@@ -53,6 +53,28 @@ R-009. [ ] (U) Today view: phone-first digest outside the 3D scene
 R-013..016. [ ] (W) Schedule I-like living city / skate / currency — after R-006, R-002, R-005, R-011; original art only
 60. [ ] (U) privacy_check `--files` mode + line numbers: scan only the files a publish changes and print `path:line` so a hit is fixed in seconds (feeds R-006)
 61. [ ] (U) Reviewed allowlist file for privacy_check (`tools/privacy_allow.txt`, one pattern + reason per line, Council YES to add) so a false positive never tempts anyone to turn the gate off
+62. [ ] (U) pace.py `--check` mode run by tests and each session start: flags any budget entry with an unreadable time, missing tier/estimate, or a future date, naming the entry instead of giving up on the whole file (feeds R-008)
+63. [ ] (U) Channel report-quality board in the Savings Hub: share of Grok Build DONE posts that carried evidence (SHA, URL, test output) vs bare claims, per lane, so a lane that writes junk is visible at a glance
+64. [ ] (U) Notice Board "paced down" line: when pace.py says minimal/skip, show one plain sentence with the points over pace so a quiet session never looks like a stall
+65. [ ] (U) Channel thread digest in the Savings Hub: group each task's ACK, DONE and BLOCKED posts into one row with times, so retries and stale backoffs are obvious
+66. [ ] (U) Stale publish-branch sweeper: the Inspector deletes a remote `publish` branch whose commits are already on main, so it never blocks the next publish
+67. [ ] (U) Pending local log counter: show how many CHANGELOG/activity lines are waiting for the next publish, so batched minimal sessions stay visible
+68. [x] (merged into #66, Oct 9) Publish preflight in pace/Inspector: before a session publishes, check for a remote `publish` branch and say in one line whether it is stale (already on main) or live (another session), so nobody force-overwrites or stalls
+69. [ ] (U) Channel "waiting on" line on the Notice Board: the oldest Grok Bot task with no Grok Build ACK and how long it has waited, shown calmly (Wi-Fi gaps are normal) so a nudge is a glance, not a hunt
+70. [ ] (U) Courier sign-in digest: group new-login and new-app emails into one calm "confirm these were you" line instead of separate notices
+71. [ ] (U) Pace banner in the Treasury: show points over/under pace and how many sessions were held, so a run of quiet sessions reads as deliberate saving
+72. [ ] (U) Held-session counter in pace.py: after 4+ held sessions in a row, recommend one polish-sized publish of the batched logs so the live changelog doesn't fall a day behind
+73. [ ] (U) Channel closed-task list: when Grok Bot verifies a DONE (an "ok" reply), mark that task closed in channel-seen.json so later sessions skip rereading its thread
+74. [ ] (U) Cloudflare lane card in the Savings Hub: show a plain "needs Account ID" state when Workers AI returns 502 for a missing setting, so a setup gap never looks like an outage
+75. [ ] (U) Probe-based "N of M up" on the public OmniRoute snapshot: count a lane as up only when a live probe passed in the last 15 minutes, matching the Grok Build status line
+76. [ ] (U) Stale-data badge on Treasury and Router Hub: when the OmniRoute Usage Analytics snapshot is older than 15 minutes, show "last live reading at HH:MM" in place of the savings figure, so a delayed number never looks current
+77. [ ] (U) Channel DONE lint: flag grok-build DONE posts that carry no evidence (unfilled template text, "continuation note") so the reply rejects them on the first pass
+78. [ ] (U) Owner-urgent lane in the Channel digest: show OWNER URGENT tasks pinned at the top with time since ACK, so an urgent provider fix is never buried under routine follow-ups
+79. [ ] (U) Duplicate-DONE folding: when Grok Build posts the same DONE under two ids (e.g. gdb9err2 and gdb9err2b), the Channel digest shows one row with both ids, so dedup is visible and nothing is answered twice
+80. [ ] (U) Hold-streak guard: when the Council has held the Builder for 4+ sessions in a row, the next session that the pacer rates S or better must ship one polish increment, so pacing never freezes the city all day
+81. [x] (merged into the Watchman role, Oct 9) Branch CI note on the Notice Board: show red Actions runs on Grok Build PR branches separately from main, labeled "not live", so a failing PR branch never reads as a broken site
+82. [ ] (U) Watchman card in Town Hall: last check time, main and live-site status, and each open PR's checks with a "not live" tag, read from the Watchman's own activity lines
+83. [ ] (U) Channel reads by time: each session asks the Channel PR only for comments since the last-seen timestamp in channel-seen.json, so a long thread never gets reread in full
 59. [ ] (U) Session heartbeat JSON (local): last start/finish/ok written each session; Notice Board surfaces a missing heartbeat (feeds R-008)
 5. [ ] (U) Review Board checklist view: the Critic's pass/fail checks as icons per role
 6. [ ] (W) Agents follow sidewalks/crosswalks; idle animations by role (reading, typing, hammering)

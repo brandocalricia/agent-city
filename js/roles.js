@@ -4,6 +4,7 @@
 const C = window.City;
 C.ROLES = [
   { id: 'inspector', name: 'Inspector', icon: '🔍', color: 0x6ad1ff, building: 'townhall', job: 'Checks that the city still loads and renders without errors.' },
+  { id: 'watchman', name: 'Watchman', icon: '🛰', color: 0x8fd3ff, building: 'townhall', job: "Watches the owner's GitHub each session: Actions on main, the live site, and open pull requests. Red runs on Grok Build PR branches are labeled not live; it raises the Notice Board only for real problems (red main, a broken live site, a stuck PR).", idle: 'Watching GitHub' },
   { id: 'builder', name: 'Builder', icon: '🔨', color: 0xffb347, building: 'office', job: 'Builds one small improvement to Agent City each session.' },
   { id: 'scout', name: 'Scout', icon: '🧭', color: 0xf08a24, building: 'market', job: 'Researches genuinely useful tools and resources and brings back finds. Read-only: never installs, stars, or signs up.' },
   { id: 'courier', name: 'Courier', icon: '✉️', color: 0x4f8cff, building: 'postoffice', private: true, job: 'Reads recent Gmail (read-only) and flags emails that need your action.' },

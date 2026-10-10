@@ -205,6 +205,7 @@ class CityWiring(unittest.TestCase):
             self.assertTrue(os.path.exists(os.path.join(ROOT, "js", "buildings", b + ".js")), f"{rid}: {b}.js missing")
             self.assertIn("'%s'" % b, listed, f"{b} not in js/manifest.js")
         self.assertIn("'reporter'", roles)
+        self.assertIn("id: 'watchman'", roles)  # GitHub watcher role (owner order t279u)
 
 
 class RepoState(unittest.TestCase):

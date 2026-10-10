@@ -1,6 +1,6 @@
 # Agent City suggestions for Grok Build
 
-Generated 2026-10-09 13:26 UTC by build_data.py; refreshed every city session. Read by the `city-apply` skill.
+Generated 2026-10-10 03:04 UTC by build_data.py; refreshed every city session. Read by the `city-apply` skill.
 Only the Apply queue is actionable. Each id is processed once; local state is `~/.grok/agent-city/applied.json`.
 Every item carries checks (run before and after; `$ ` lines are commands) and tests (must pass). Items without them are skipped.
 
@@ -30,19 +30,19 @@ Every item carries checks (run before and after; `$ ` lines are commands) and te
 
 ## Latest Council verdicts (context; already handled in the city)
 
-- 2026-10-09 Quick YES 8/10: Should every [publish] run tools/privacy_check.py before Tests and stop the publish on any email or amount hit? Reason: One-line step, the repo already scans clean, and a leak to the public site cannot be undone; a false positive only delays a publish and is fixed with the allowlist
-- 2026-10-08 Quick YES 7/10: Catch up the missed 8:49 AM roles at midday (Courier, Timekeeper, Tutor), skipping Scout deep research and the Newsroom since today's digest exists? Reason: Keeps the Morning Brief and Study Hall fresh after a failed session while staying inside this session's M budget
-- 2026-10-08 Quick YES 9/10: Skip the test workflow on partial publish-branch pushes, but still run it on the final [publish] commit? Reason: Partial pushes are incomplete by design, so their failures were pure noise (about 15 emails); the [publish] commit still gets the full ubuntu + macOS run and publish.yml still gates main
-- 2026-10-08 Quick YES 8/10: Fade overlapping building labels, keeping Town Hall's label always visible? Reason: Overlapping names were unreadable in the overview; one small throttled file fixes it and is easy to undo; search and the minimap still reach every building
-- 2026-10-08 Quick YES 8/10: Should the Prompt Workshop get a linter that checks a pasted prompt for goal, context, done-when, and output, and offers the missing lines to copy? Reason: The four parts match the Delegate template agents already respond best to; checking runs in the browser, so it is instant and free. Red Team: keyword checks can miss a well-written prompt; accepted, it only suggests and never blocks.
+- 2026-10-09  YES ?/10:  Reason: 
+- 2026-10-09  YES ?/10:  Reason: 
+- 2026-10-09 Quick NO build (minimal session) 9/10: Build this session while usage runs about 18 points ahead of pace? Reason: No breakage and no open owner requests; spending now risks the weekly limit
+- 2026-10-09 Quick NO build (minimal session) 9/10: Build this session while usage runs about 19 points ahead of pace? Reason: No breakage and no open owner requests; spending now risks the weekly limit
+- 2026-10-09 Quick NO build (minimal session) 9/10: Build this session while usage runs about 20 points ahead of pace? Reason: Spending now would risk the weekly limit before reset; no open owner requests or breakage
 
 ## Next best steps for the city (context)
 
 1. (U) privacy_check `--files` mode + line numbers: scan only the files a publish changes and print `path:line` so a hit is fixed in seconds (feeds R-006)
 2. (U) Reviewed allowlist file for privacy_check (`tools/privacy_allow.txt`, one pattern + reason per line, Council YES to add) so a false positive never tempts anyone to turn the gate off
-3. (U) Session heartbeat JSON (local): last start/finish/ok written each session; Notice Board surfaces a missing heartbeat (feeds R-008)
-4. (U) Review Board checklist view: the Critic's pass/fail checks as icons per role
-5. (W) Agents follow sidewalks/crosswalks; idle animations by role (reading, typing, hammering)
+3. (U) pace.py `--check` mode run by tests and each session start: flags any budget entry with an unreadable time, missing tier/estimate, or a future date, naming the entry instead of giving up on the whole file (feeds R-008)
+4. (U) Channel report-quality board in the Savings Hub: share of Grok Build DONE posts that carried evidence (SHA, URL, test output) vs bare claims, per lane, so a lane that writes junk is visible at a glance
+5. (U) Notice Board "paced down" line: when pace.py says minimal/skip, show one plain sentence with the points over pace so a quiet session never looks like a stall
 
 ## Newsroom: recent news for Grok Build (context, not actionable)
 
