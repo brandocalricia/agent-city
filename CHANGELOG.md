@@ -1,5 +1,11 @@
 # Agent City - Changelog
 
+## 2026-10-10 - Evening (8:57 PM): a held day, one entry
+- Six paced-down sessions today (10:58 AM to 8:57 PM): each checked the live site, data.js, the Actions runs and the tests (153 pass), and the Channel; the Builder held because usage ran about 18 to 23 points ahead of pace and OmniRoute stabilizing comes first
+- Daily Full Council (YES, 7/10): stay on hold until stabilizing finishes; then privacy_check --files and allowlist (#60, #61), the publish-branch sweeper (#66), the Worker lanes card (#92), the Watchman card (#82), the Pace dial (#84)
+- Treasury: Meter Reader logged the morning publish (104.9 KB); Optimizer folds held sessions into one entry so a quiet day costs one data.js rebuild
+- Roadmap ideas #84 to #95 added across the day
+
 ## 2026-10-09 - Evening (8:58 PM): Watchman joins Town Hall
 - New role: the Watchman checks GitHub each session (main, the live site, open pull requests) and only raises real problems; red runs on Grok Build PR branches are labeled not live (owner order; Full Council YES 15-2)
 - First watch: main and the live site are fine; Grok Build's `city/b9empty200` branch is red and already on its queue

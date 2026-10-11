@@ -81,6 +81,15 @@
    "saved_tokens": 38300,
    "note": "Measured at 1a937e5 via git show byte sizes. Frontend split still saving: ~162.6 KB whole front end vs 13.2 KB front-end bytes in this push.",
    "saved_method": "Split saving (estimate): whole front end (index+css+js) minus front-end bytes in this commit."
+  },
+  {
+   "date": "2026-10-10",
+   "session": "Morning Newsroom (minimal)",
+   "commit": "8173c97",
+   "files_pushed": 4,
+   "kb_pushed": 104.9,
+   "est_tokens": 26900,
+   "top": "data.js 92.0 KB, news.json 6.2 KB, grok-build/suggestions.md 5.6 KB"
   }
  ],
  "savings": [

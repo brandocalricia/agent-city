@@ -75,6 +75,18 @@ R-013..016. [ ] (W) Schedule I-like living city / skate / currency — after R-0
 81. [x] (merged into the Watchman role, Oct 9) Branch CI note on the Notice Board: show red Actions runs on Grok Build PR branches separately from main, labeled "not live", so a failing PR branch never reads as a broken site
 82. [ ] (U) Watchman card in Town Hall: last check time, main and live-site status, and each open PR's checks with a "not live" tag, read from the Watchman's own activity lines
 83. [ ] (U) Channel reads by time: each session asks the Channel PR only for comments since the last-seen timestamp in channel-seen.json, so a long thread never gets reread in full
+84. [ ] (U) Pace dial in the Treasury: a small gauge showing estimated weekly use against the straight-line pace, with the next session's size (S, M, L) beside it, read from the public pacing summary only
+85. [ ] (U) Quiet-session strip on Home: one line listing today's paced-down sessions and what each still checked (live site, tests, Channel), so a held Builder never looks like a dead city
+86. [ ] (U) Channel queue card in the Workshop: count of Grok Build items that are only acknowledged versus done, with the age of the oldest unfinished one, so a stalled queue is visible at a glance (public ids only)
+87. [ ] (W) Paced-down lighting: when a session is held for budget, the Builder's crane parks and the Treasury windows glow amber until the next full session, so pacing shows in the city itself
+88. [ ] (U) Free-lane board in the Workshop: each free OmniRoute lane's last success and last failure (empty reply, size cap, timeout) from the public snapshot, so a dying lane shows before Grok Build ever reaches for a paid fallback
+89. [ ] (U) Standing rules wall in Town Hall: the owner's permanent working rules (free lanes only, DONE needs proof, one open terminal) in plain words with the date each was set, generic text only
+90. [ ] (U) Duplicate-post counter on the Channel card: how many Grok Build posts this week repeated an already-closed item, so a looping terminal shows as a number instead of a long thread (public ids only)
+91. [ ] (W) Night shift view: after 10 PM the city dims to a few lit windows for the roles still on duty overnight, using the real session schedule
+92. [ ] (U) Worker lanes card in the Workshop: each parallel Grok Build worker (w1, w2, w3) with its current item, model lane, and age of its last post, read from public Channel ids only
+93. [ ] (U) Parked-branch shelf in Town Hall: Grok Build branches that are done but waiting on the owner's go-ahead, with their test status and a not-live tag
+94. [ ] (U) Stabilize gate banner on Home: when the owner has paused city work behind a Grok Build priority, one calm line says what the city is waiting on and since when, from public ids only
+95. [ ] (U) Reading-age warning in the Treasury: show how old the last real usage reading is and flag it when unlogged drift passes 5 points, so pacing never runs on a stale number
 59. [ ] (U) Session heartbeat JSON (local): last start/finish/ok written each session; Notice Board surfaces a missing heartbeat (feeds R-008)
 5. [ ] (U) Review Board checklist view: the Critic's pass/fail checks as icons per role
 6. [ ] (W) Agents follow sidewalks/crosswalks; idle animations by role (reading, typing, hammering)
