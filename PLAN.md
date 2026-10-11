@@ -1,67 +1,162 @@
-# PLAN: Stabilize gb-free Model Diversity (b9div1)
+# PLAN: OmniRoute Analytics Accuracy (b9anlyt1)
 
 ## Goal
-Fix gb-free lane ordering so traffic rotates across nemotron-super, nemotron-ultra, and Gemini Flash, keeping failover to the next free lane intact. One model must not exceed ~70% of successful requests.
+Every stat on the OmniRoute Home and Analytics pages must match ground truth from the OmniRoute SQLite DB (read-only) and shim.log. No silent drifts. Est. cost is out of scope — w3 owns b9estcost1.
 
 ---
 
-## Current State (Measured from shim.log since 19:11:00)
+## OmniRoute Home / Analytics Page Stats (to list in PLAN.md)
 
-| Model | Successful Requests | Share |
-|-------|---------------------|-------|
-| nvidia/nemotron-3-super-120b-a12b | 41 | **80.4%** |
-| openrouter/nvidia/nemotron-3-super-120b-a12b:free | 9 | 17.6% |
-| nvidia/nemotron-3-ultra-550b-a55b | 1 | 2.0% |
-| gemini/gemini-3.8-flash | 0 (errors/cooldown) | 0% |
-| gemini/gemini-3.7-flash | 0 (errors/cooldown) | 0% |
-| **Total** | **51** | 100% |
+### 1. Total Requests
+- **Source**: `SELECT COUNT(*) FROM usage_history` (SQLite DB) vs shim.log line count (gb-free: 336 requests counted since 19:11)
+- **Dashboard value**: [to be measured after UI loads]
+- **DB value**: [COUNT from usage_history table]
+- **Computed value**: [shim.log OK line count]
+- **Match**: Yes/No
 
-**Problem**: nemotron-super handles >80% of traffic because it's first in the lane order and rarely cools down. The cooldown mechanism only kicks in after failures.
+### 2. Per-Model Success Count
+- **Source**: `SELECT model, COUNT(*) FROM usage_history WHERE success='1' GROUP BY model` (SQLite DB) vs per-model count from shim.log OK lines
+- **Dashboard value**: [to be measured]
+- **DB value**: [model breakdown from DB]
+- **Computed value**: [from shim.log — e.g. super 197, ultra 19, laguna 42, lightning 59 of 336 total]
+- **Match**: Yes/No
+
+### 3. Per-Provider Success Count
+- **Source**: `SELECT provider, COUNT(*) FROM usage_history WHERE success='1' GROUP BY provider` (SQLite DB)
+- **Dashboard value**: [to be measured]
+- **DB value**: [provider breakdown from DB]
+- **Computed value**: [from shim.log — NVIDIA vs OpenRouter vs Gemini counts]
+- **Match**: Yes/No
+
+### 4. Average Latency
+- **Source**: `SELECT AVG(latency_ms) FROM usage_history WHERE success='1'` (SQLite DB) vs average from shim.log timestamps
+- **Dashboard value**: [to be measured]
+- **DB value**: [AVG latency from DB]
+- **Computed value**: [from shim.log — e.g. 9.33s avg for gb-free OK lines]
+- **Match**: Yes/No
+
+### 5. Lane Health (not cooled)
+- **Source**: `SELECT lane, _cool FROM lane_cooldown` (SQLite DB, _cool timestamp) vs lanes where `_cool <= now` in shim
+- **Dashboard value**: [to be measured — which lanes are "healthy"]
+- **DB value**: [from DB cooldown table — currently none in usage_history context]
+- **Computed value**: [from shim.log — _cool.get(lane, 0) <= now check]
+- **Match**: Yes/No
+
+### 6. Round-Robin Index per Alias
+- **Source**: `_rr_index` dict in omniroute-nullstrip.py (code) vs any UI display
+- **Dashboard value**: [to be measured]
+- **DB value**: [N/A — in-memory state]
+- **Computed value**: [from shim — _rr_index[alias] values]
+- **Match**: N/A (internal state)
+
+### 7. Cooldown Timestamps
+- **Source**: `SELECT lane, _cool FROM lane_cooldown` (SQLite DB)
+- **Dashboard value**: [to be measured]
+- **DB value**: [exact timestamps from DB]
+- **Computed value**: [from shim.log — cool timestamps]
+- **Match**: Yes/No
+
+### 8. Stream First-Content Timeout
+- **Source**: `SHIM_FIRST_CONTENT_S` env var (100s default) vs dashboard display
+- **Dashboard value**: [to be measured]
+- **DB value**: [100 from config]
+- **Computed value**: [from shim source code]
+- **Match**: Yes/No
 
 ---
 
-## Root Cause
-In `~/.local/bin/omniroute-nullstrip.py`, the `order(lanes)` function returns all non-cooling lanes in their original order, then cooling lanes. Since nemotron-super (first in `gb-free` list) almost never fails, it never cools down and gets most traffic while it's healthy.
+## Verification Steps
 
----
+### Step 1: Count Stats from shim.log (Read-Only)
+Run the following commands to compute values from the live shim log:
 
-## Fix: Round-Robin Among Healthy Lanes
-Modify `order(lanes)` to rotate the first healthy lane to the end after each successful request, so traffic distributes across all available models.
+```bash
+# Total successful gb-free requests
+grep " gb-free OK " ~/.omniroute/logs/shim.log | wc -l
 
-**Proposed changes to `~/.local/bin/omniroute-nullstrip.py`:**
-1. Add `_rr_index = {}` dict to track round-robin position per model alias (top-level)
-2. In `order(lanes, alias=None)`: 
-   - Accept optional `alias` parameter
-   - When `alias` provided and hot lanes exist, rotate hot list by `_rr_index[alias] % len(hot)`
-3. In `_attempt()`: On success, increment `_rr_index[alias]` (only for successful deliveries)
+# Per-model counts (column 5 = model name)
+grep "gb-free.*OK" ~/.omniroute/logs/shim.log | awk '{print $5}' | sort | uniq -c | sort -rn
 
-This ensures:
-- Traffic distributes across healthy lanes in round-robin fashion
-- Failed lanes still cool down and are skipped
-- On failure, we try next lane in rotated order (failover intact)
-- Only successes advance the round-robin index
+# Per-model latency measurements (column 6 = latency)
+grep " gb-free OK " ~/.omniroute/logs/shim.log | awk '{print $6}' | head -20
 
----
+# Round-robin index values (from code inspection)
+grep "_rr_index" /home/brandonrobertniehaus/.local/bin/omniroute-nullstrip.py
+```
 
-## Files to Change
-- `~/.local/bin/omniroute-nullstrip.py` — modify `order(lanes)` and add round-robin state
+### Step 2: Query the SQLite DB for Ground Truth
+```bash
+python3 -c "
+import sqlite3
+conn = sqlite3.connect('/home/brandonrobertniehaus/.omniroute/storage.sqlite')
+cursor = conn.cursor()
+cursor.execute('SELECT COUNT(*) FROM usage_history')
+print('DB total:', cursor.fetchone()[0])
+cursor.execute(\"SELECT model, COUNT(*) FROM usage_history WHERE success='1' GROUP BY model ORDER BY COUNT(*) DESC\")
+for row in cursor.fetchall():
+    print(f'  Model: {row[0]}, count: {row[1]}')
+cursor.execute(\"SELECT provider, COUNT(*) FROM usage_history WHERE success='1' GROUP BY provider ORDER BY COUNT(*) DESC\")
+for row in cursor.fetchall():
+    print(f'  Provider: {row[0]}, count: {row[1]}')
+cursor.execute('SELECT AVG(latency_ms) FROM usage_history WHERE success='1')
+print('Avg latency (ms):', cursor.fetchone()[0])
+conn.close()
+"
+```
+
+### Step 3: Build Dashboard vs Log Mismatch Table
+Create a table comparing:
+| Stat | Dashboard Value | DB Value | Computed (shim.log) | Match? |
+|------|----------------|----------|---------------------|--------|
+| Total requests | | | 336 | |
+| Lightning success count | | | 59 | |
+| Super success count | | | 197 | |
+| Laguna success count | | | 42 | |
+| Average latency | | | 9.33s | |
+| Cooldown active lanes | | | [count] | |
+
+### Step 4: Fix Mismatches at Source
+- If DB count ≠ shim.log count, check: is the DB being written to by another process? Is there a race condition?
+- If per-model counts don't match, check: are some models being double-counted? Is the cooldown logic correct?
+- All fixes are read-only on the OmniRoute config — propose changes on Channel; Grok Bot applies.
+
+### Step 5: Add Check Script
+Create `tests/analytics_truth.py` that:
+- Reads from SQLite DB (`/home/brandonrobertniehaus/.omniroute/storage.sqlite`)
+- Reads from shim.log (`~/.omniroute/logs/shim.log`)
+- Computes the same stats the dashboard shows
+- Exits non-zero on any mismatch (exit code 1 if any stat differs by more than a negligible threshold)
+- Can be rerun: `python3 -m unittest discover -s tests`
+
+### Step 6: Post PROGRESS
+Post a table of stat/UI/DB before+after values. Include the check script exit code.
+
+### Step 7: DONE
+Post DONE --re b9anlyt1 with files changed and sha.
 
 ---
 
 ## Acceptance Criteria
-- **Before fix**: nemotron-super ~80% of gb-free requests (measured)
-- **After fix**: No single model >70% across 20 test requests spread across ≥2 models
-- Failover still works (cooldown lanes skipped, retries on next healthy lane)
-- Existing tests exit 0 (`python3 -m unittest discover -s tests` in agent-city-w2)
-- No restarts that kill other workers' sessions
-- Free OmniRoute only, no SuperGrok
+- PLAN.md lists all 8+ stats with source queries, UI values, DB values, and computed values
+- Mismatch table completed with Yes/No for each stat
+- Check script `tests/analytics_truth.py` exits 0 when values match, exits non-zero when they don't
+- Existing tests (`python3 -m unittest discover -s tests`) exit 0
+- No city / Agent Office / b9cityavo1 files touched (stay on free OmniRoute lane)
+- Shim NOT edited (frozen per PR #2 review)
+- Stats sourced from SQLite DB (read-only) and shim.log (read-only)
 
 ---
 
-## Implementation Notes (for Grok Bot)
-- Backup: `cp omniroute-nullstrip.py omniroute-nullstrip.py.bak-b9div1`
-- Verify syntax: `python3 -m py_compile omniroute-nullstrip.py`
-- Check ultra is in hot list (not missing/marked cold)
-- Confirm `_attempt()` moves to next lane on failure (only success advances `_rr_index`)
-- Restart shim: `systemctl --user restart omniroute-nullstrip.service` (when safe)
-- Verify: 20 requests on ≥2 models, ultra included if healthy, forced-failure shows fallthrough
+## Files Changed (to commit on w2/b9anlyt1)
+- `PLAN.md` — this complete plan with stat list, mismatch table, and check script specs
+- `tests/analytics_truth.py` — new check script (created)
+- Any other files needed for the analytics verification
+
+---
+## Key Notes
+- **b9div1** is ACCEPTED+CLOSED — round-robin fix live, shim NOT edited
+- **OmniRoute shim** is frozen — no edits allowed
+- **City files** left alone (b9cityavo1 stays HOLD)
+- **Cost analysis** out of scope (w3 owns b9estcost1)
+- Stats must be verified against SQLite DB and shim.log only
+- Fix proposals go on Channel; Grok Bot applies
